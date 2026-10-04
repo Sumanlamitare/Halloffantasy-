@@ -75,11 +75,15 @@ export async function connectLeague(input: ConnectInput): Promise<ImportView> {
   try {
     league = await fetchLeague(input.leagueId, season, { views, creds: input.creds });
   } catch (err) {
-    // The league may not have renewed for the requested season yet.
-    if (err instanceof EspnError && err.kind === "not_found") {
+    // The league may not have renewed for the requested season yet. ESPN
+    // answers that with "not found" for public leagues but "not authorized"
+    // for private ones, so try the previous season in both cases and report
+    // the original error if that fails too.
+    if (!(err instanceof EspnError) || (err.kind !== "not_found" && err.kind !== "auth")) throw err;
+    try {
       season = input.season - 1;
       league = await fetchLeague(input.leagueId, season, { views, creds: input.creds });
-    } else {
+    } catch {
       throw err;
     }
   }

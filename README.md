@@ -75,7 +75,8 @@ Notes:
 | "Database login failed…" | Wrong username/password in `MONGODB_URI`; fix it in Vercel and redeploy. |
 | "MONGODB_URI is not set" / "isn't a valid MongoDB connection string" | Add or re-copy `MONGODB_URI` in Vercel and redeploy. |
 | "This league is private…" | Check "My league is private" and add `espn_s2` + `SWID`. |
-| "ESPN rejected the provided credentials…" | Cookies expired (sign out/in on ESPN and copy fresh values) or the account isn't in this league. |
+| "ESPN rejected the provided credentials…" | Pick the previous season (your league may not have renewed yet); recopy `espn_s2` with Chrome's "Show URL-decoded" **unchecked**; make sure the ESPN account is in the league; copy fresh cookies if they expired. |
+| "ESPN blocked the request from this server…" | ESPN's bot protection refused the server; try again later. |
 | "League or season not found on ESPN." | Check the League ID and season. |
 | "Private leagues are not enabled on this server…" | Set `ESPN_CREDENTIALS_KEY` in Vercel and redeploy. |
 | "ESPN is temporarily unavailable…" | ESPN hiccup — press **Resume Import**; finished seasons are kept. |

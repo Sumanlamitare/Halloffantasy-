@@ -308,8 +308,11 @@ function ConnectStep({
                 </li>
                 <li>
                   Copy the values of <code className="text-fg">espn_s2</code>{" "}
-                  and <code className="text-fg">SWID</code>. You can send them
-                  to your phone (e.g. a private note) to finish here.
+                  and <code className="text-fg">SWID</code>. Make sure{" "}
+                  <span className="text-fg">Show URL-decoded</span> is unchecked
+                  and copy the whole <code className="text-fg">espn_s2</code>{" "}
+                  value (about 300 characters). You can send them to your phone
+                  (e.g. a private note) to finish here.
                 </li>
               </ol>
             </details>

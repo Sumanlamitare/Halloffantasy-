@@ -88,9 +88,19 @@ async function requestJson<T>(url: URL, opts: RequestOptions): Promise<T> {
     }
 
     if (res.status === 401 || res.status === 403) {
+      // ESPN's API answers auth failures with JSON. An HTML 403 means the
+      // request was blocked upstream (bot protection), not a credentials issue.
+      const body = await res.text().catch(() => "");
+      if (res.status === 403 && !body.trimStart().startsWith("{")) {
+        throw new EspnError(
+          "ESPN blocked the request from this server (HTTP 403). Please try again in a few minutes.",
+          "transient",
+          403,
+        );
+      }
       throw new EspnError(
         opts.creds
-          ? "ESPN rejected the provided credentials. They may be expired or not belong to a member of this league."
+          ? `ESPN rejected the provided credentials (HTTP ${res.status}). Check that: the season is right (try the previous season); espn_s2 was copied completely, with "Show URL-decoded" unchecked; and the ESPN account is a member of this league. Cookies expire, so copy fresh ones if needed.`
           : "This league is private. ESPN credentials (espn_s2 and SWID) are required.",
         "auth",
         res.status,
