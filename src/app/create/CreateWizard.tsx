@@ -34,11 +34,16 @@ async function post<T>(url: string, body: unknown): Promise<T> {
   } catch {
     throw new Error("Network error. Check your connection and try again.");
   }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok)
+  const data = (await res.json().catch(() => null)) as { error?: string } | null;
+  if (!res.ok) {
+    if (data?.error) throw new Error(data.error);
+    // Non-JSON response: usually a Vercel platform error (timeout, crash).
     throw new Error(
-      (data as { error?: string }).error ?? "Something went wrong.",
+      res.status === 504
+        ? "The server took too long to respond (HTTP 504). Please try again."
+        : `Server error (HTTP ${res.status}). Open /api/health on this site to check the setup.`,
     );
+  }
   return data as T;
 }
 
@@ -303,8 +308,11 @@ function ConnectStep({
                 </li>
                 <li>
                   Copy the values of <code className="text-fg">espn_s2</code>{" "}
-                  and <code className="text-fg">SWID</code>. You can send them
-                  to your phone (e.g. a private note) to finish here.
+                  and <code className="text-fg">SWID</code>. Make sure{" "}
+                  <span className="text-fg">Show URL-decoded</span> is unchecked
+                  and copy the whole <code className="text-fg">espn_s2</code>{" "}
+                  value (about 300 characters). You can send them to your phone
+                  (e.g. a private note) to finish here.
                 </li>
               </ol>
             </details>

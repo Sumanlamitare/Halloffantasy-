@@ -14,6 +14,7 @@ import {
 import { EspnError, fetchLeague, type EspnCredentials } from "@/lib/espn/client";
 import { generateLeagueCode } from "@/lib/league-code.server";
 import { recomputeHall } from "@/lib/hall/compute";
+import { describeServerError } from "@/lib/server-errors";
 import { importSeason } from "./steps";
 
 const JOB_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -74,11 +75,15 @@ export async function connectLeague(input: ConnectInput): Promise<ImportView> {
   try {
     league = await fetchLeague(input.leagueId, season, { views, creds: input.creds });
   } catch (err) {
-    // The league may not have renewed for the requested season yet.
-    if (err instanceof EspnError && err.kind === "not_found") {
+    // The league may not have renewed for the requested season yet. ESPN
+    // answers that with "not found" for public leagues but "not authorized"
+    // for private ones, so try the previous season in both cases and report
+    // the original error if that fails too.
+    if (!(err instanceof EspnError) || (err.kind !== "not_found" && err.kind !== "auth")) throw err;
+    try {
       season = input.season - 1;
       league = await fetchLeague(input.leagueId, season, { views, creds: input.creds });
-    } else {
+    } catch {
       throw err;
     }
   }
@@ -218,7 +223,8 @@ export async function runImportStep(importId: string): Promise<ImportView | null
     const message =
       err instanceof EspnError
         ? err.message
-        : "Something went wrong while saving your league. Your progress is saved — try resuming.";
+        : (describeServerError(err) ??
+          "Something went wrong while saving your league. Your progress is saved — try resuming.");
     // Unexpected errors are logged without any request data or credentials.
     if (!(err instanceof EspnError)) console.error("Import step failed:", (err as Error)?.name, (err as Error)?.message);
     if (current && current.state.status === "running") {
