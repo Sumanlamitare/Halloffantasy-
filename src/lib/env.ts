@@ -1,4 +1,5 @@
 import "server-only";
+import { ConfigError } from "@/lib/server-errors";
 
 /**
  * Server-only environment access. Never import this from client components.
@@ -7,7 +8,9 @@ import "server-only";
 export function getMongoUri(): string {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error("MONGODB_URI is not configured on the server.");
+    throw new ConfigError(
+      "Server setup: MONGODB_URI is not set. Add it in Vercel → Settings → Environment Variables, then redeploy.",
+    );
   }
   return uri;
 }
@@ -29,7 +32,9 @@ export function getCredentialsKey(): Buffer | null {
     ? Buffer.from(raw, "hex")
     : Buffer.from(raw, "base64");
   if (key.length !== 32) {
-    throw new Error("ESPN_CREDENTIALS_KEY must decode to exactly 32 bytes.");
+    throw new ConfigError(
+      "Server setup: ESPN_CREDENTIALS_KEY must be a 32-byte key (generate with `openssl rand -base64 32`). Update it in Vercel, then redeploy.",
+    );
   }
   return key;
 }

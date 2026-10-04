@@ -67,8 +67,13 @@ Notes:
    - Copy the `espn_s2` value exactly as shown (it usually contains `%2B`/`%2F` — keep them) and the `SWID` value (with or without `{ }`).
    - The account must be a member of the league.
 
+**Setup check:** open `https://YOUR-SITE.vercel.app/api/health`. It reports whether the database connects, whether `ESPN_CREDENTIALS_KEY` is valid, and whether ESPN is reachable from the server (status only, never secret values).
+
 | Message | Meaning / fix |
 | --- | --- |
+| "Couldn't connect to the database…" | Atlas → Network Access → add `0.0.0.0/0`. |
+| "Database login failed…" | Wrong username/password in `MONGODB_URI`; fix it in Vercel and redeploy. |
+| "MONGODB_URI is not set" / "isn't a valid MongoDB connection string" | Add or re-copy `MONGODB_URI` in Vercel and redeploy. |
 | "This league is private…" | Check "My league is private" and add `espn_s2` + `SWID`. |
 | "ESPN rejected the provided credentials…" | Cookies expired (sign out/in on ESPN and copy fresh values) or the account isn't in this league. |
 | "League or season not found on ESPN." | Check the League ID and season. |

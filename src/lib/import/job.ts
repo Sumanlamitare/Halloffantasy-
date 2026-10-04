@@ -14,6 +14,7 @@ import {
 import { EspnError, fetchLeague, type EspnCredentials } from "@/lib/espn/client";
 import { generateLeagueCode } from "@/lib/league-code.server";
 import { recomputeHall } from "@/lib/hall/compute";
+import { describeServerError } from "@/lib/server-errors";
 import { importSeason } from "./steps";
 
 const JOB_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -218,7 +219,8 @@ export async function runImportStep(importId: string): Promise<ImportView | null
     const message =
       err instanceof EspnError
         ? err.message
-        : "Something went wrong while saving your league. Your progress is saved — try resuming.";
+        : (describeServerError(err) ??
+          "Something went wrong while saving your league. Your progress is saved — try resuming.");
     // Unexpected errors are logged without any request data or credentials.
     if (!(err instanceof EspnError)) console.error("Import step failed:", (err as Error)?.name, (err as Error)?.message);
     if (current && current.state.status === "running") {
