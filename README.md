@@ -19,6 +19,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · MongoDB 
 | `MONGODB_URI` | Yes | MongoDB Atlas connection string (include the database name in the path). |
 | `MONGODB_DB` | No | Overrides the database name from the URI. |
 | `ESPN_CREDENTIALS_KEY` | For private leagues | 32 random bytes (base64 or hex) used to encrypt `espn_s2`/`SWID` while an import runs. Generate with `openssl rand -base64 32`. Public leagues work without it. |
+| `CRON_SECRET` | Recommended | Any long random string. Vercel sends it with the daily auto-update job; other callers of `/api/cron/sync` are rejected. |
 
 All are server-only. Copy `.env.example` to `.env.local` for local development. `.env*` files are git-ignored.
 
@@ -81,6 +82,16 @@ Notes:
 | "Private leagues are not enabled on this server…" | Set `ESPN_CREDENTIALS_KEY` in Vercel and redeploy. |
 | "ESPN is temporarily unavailable…" | ESPN hiccup — press **Resume Import**; finished seasons are kept. |
 
+## Automatic updates
+
+Opt in with **Keep this Hall updated automatically** when importing (on by default).
+
+- **While people visit:** if the data is more than 30 minutes old during an active season, a visit triggers a background refresh from ESPN. The page is never slowed down; the refreshed data appears on the next load, and open pages re-read it every 5 minutes.
+- **Daily:** a Vercel Cron job (`vercel.json`, 10:00 UTC) refreshes every opted-in Hall. The Hobby plan allows one cron run per day.
+- **What's refreshed:** only seasons still in progress, plus a check for whether the league has renewed for a new season (which is then added automatically). Completed seasons are never re-fetched.
+- **Private leagues:** auto-update keeps the league's `espn_s2`/`SWID` stored encrypted (AES-256-GCM) in `league_credentials`. Unchecking the option deletes them after the import. ESPN cookies eventually expire; the Hall footer then shows "Automatic updates paused", and the commissioner reconnects by running **Create Your Hall** again with fresh cookies (same league code).
+- Halls imported before this feature existed: re-run **Create Your Hall** once with the option checked.
+
 ## How it works
 
 ### Commissioner
@@ -109,7 +120,7 @@ Requests retry on network errors, 429, and 5xx responses (3 attempts, exponentia
 
 ## MongoDB collections
 
-`leagues`, `seasons`, `teams`, `members`, `matchups`, `playoffs`, `hall_records` (computed Hall of Fame / champions / records), `imports` (job state, 7-day TTL), `import_credentials` (encrypted, 6-hour TTL).
+`leagues`, `seasons`, `teams`, `members`, `matchups`, `playoffs`, `hall_records` (computed Hall of Fame / champions / records), `imports` (job state, 7-day TTL), `import_credentials` (encrypted, 6-hour TTL), `league_credentials` (encrypted, only for private leagues that opted in to auto-update).
 
 Unique indexes prevent duplicates, and every write is an upsert keyed on them:
 `leagueId+season`, `leagueId+season+teamId`, `leagueId+season+memberId`, `leagueId+season+matchupId` (matchups, playoffs), `code` (leagues).

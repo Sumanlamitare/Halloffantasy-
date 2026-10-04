@@ -8,8 +8,10 @@ import {
 } from "@/lib/db/collections";
 import {
   deleteImportCredentials,
+  deleteLeagueCredentials,
   loadImportCredentials,
   saveImportCredentials,
+  saveLeagueCredentials,
 } from "@/lib/credentials";
 import { EspnError, fetchLeague, type EspnCredentials } from "@/lib/espn/client";
 import { generateLeagueCode } from "@/lib/league-code.server";
@@ -26,7 +28,7 @@ const STEP_BUDGET_MS = 20_000;
 export interface ImportView {
   importId: string;
   status: ImportDoc["status"];
-  league: { name: string; size: number; currentSeason: number; availableSeasons: number[] };
+  league: { name: string; size: number; currentSeason: number; availableSeasons: number[]; isPrivate: boolean };
   seasons: { season: number; status: ImportSeasonState["status"]; steps: ImportSeasonState["steps"]; error: string | null }[];
   error: string | null;
   code: string | null;
@@ -47,6 +49,7 @@ async function toView(job: ImportDoc, busy = false): Promise<ImportView> {
       size: job.leagueSize,
       currentSeason: job.currentSeason,
       availableSeasons: job.availableSeasons,
+      isPrivate: job.isPrivate,
     },
     seasons: job.seasons.map((s) => ({ season: s.season, status: s.status, steps: s.steps, error: s.error })),
     error: job.error,
@@ -121,7 +124,11 @@ export async function connectLeague(input: ConnectInput): Promise<ImportView> {
 
 /* Start ------------------------------------------------------------------ */
 
-export async function startImport(importId: string, seasons: number[]): Promise<ImportView | null> {
+export async function startImport(
+  importId: string,
+  seasons: number[],
+  autoUpdate: boolean,
+): Promise<ImportView | null> {
   const { imports } = await getCollections();
   const job = await imports.findOne({ _id: importId });
   if (!job) return null;
@@ -140,7 +147,7 @@ export async function startImport(importId: string, seasons: number[]): Promise<
   }));
   const updated = await imports.findOneAndUpdate(
     { _id: importId, status: "connected" },
-    { $set: { seasons: states, status: "running", updatedAt: new Date() } },
+    { $set: { seasons: states, autoUpdate, status: "running", updatedAt: new Date() } },
     { returnDocument: "after" },
   );
   return toView(updated ?? (await imports.findOne({ _id: importId }))!);
@@ -252,6 +259,18 @@ async function finalizeImport(job: ImportDoc): Promise<void> {
     throw new EspnError("ESPN didn't return usable data for any of the selected seasons.", "unavailable");
   }
 
+  // Automatic updates: keep the (encrypted) ESPN cookies only if the
+  // commissioner opted in; otherwise remove any previously stored ones.
+  const autoUpdate = !!job.autoUpdate;
+  if (autoUpdate && job.isPrivate) {
+    const creds = await loadImportCredentials(job._id);
+    if (creds) await saveLeagueCredentials(job.leagueId, creds);
+  } else {
+    await deleteLeagueCredentials(job.leagueId);
+  }
+  const hasActiveSeason =
+    (await c.seasons.countDocuments({ leagueId: job.leagueId, isComplete: false }, { limit: 1 })) > 0;
+
   const now = new Date();
   await c.leagues.updateOne(
     { _id: job.leagueId },
@@ -262,6 +281,13 @@ async function finalizeImport(job: ImportDoc): Promise<void> {
         size: job.leagueSize,
         currentSeason: job.currentSeason,
         seasons: importedSeasons.map((s) => s.season).sort((a, b) => b - a),
+        isPrivate: job.isPrivate,
+        autoUpdate,
+        hasActiveSeason,
+        lastSyncedAt: now,
+        lastSyncAttemptAt: now,
+        syncLockedUntil: null,
+        syncStatus: "ok",
         updatedAt: now,
       },
       $setOnInsert: { createdAt: now, code: null },
