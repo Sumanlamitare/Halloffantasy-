@@ -133,6 +133,7 @@ Re-importing a league updates its data in place and keeps the same league code.
 - **Playoff appearance**: regular-season seed ≤ league playoff team count (or appearing in the winners bracket).
 - **Career stats, Hall of Fame Score, and records** use completed seasons only. Points stats use points-scoring seasons only.
 - **Hall of Fame Score** (shown on the Hall of Fame page): per completed season, best result — Championship 10, Runner-up 6, other playoff appearance 3 — plus 2 for the #1 regular-season seed.
+- **Hall of Fame Probability** (Fame tab leaderboard): progress toward the induction bar — **5+ championships, 10+ playoff appearances, 500,000+ points for, 100+ regular-season wins**. Each requirement counts up to 100% and the probability is their average; 100% = **Inducted** (every bar met). In leagues without points scoring, points for is left out and the other three are averaged. The leaderboard ranks by probability, then HOF points.
 - Managers are identified across seasons by their ESPN member ID.
 
 ## API
