@@ -29,3 +29,15 @@ export function winPct(w: number, l: number, t: number): number | null {
   const games = w + l + t;
   return games > 0 ? (w + t / 2) / games : null;
 }
+
+/** "just now", "12 min ago", "3 hr ago", or a date. */
+export function timeAgo(iso: string | null, now = Date.now()): string | null {
+  if (!iso) return null;
+  const diff = Math.max(0, now - new Date(iso).getTime());
+  const min = Math.round(diff / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}

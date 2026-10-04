@@ -5,6 +5,7 @@ import { Eyebrow, StatTile } from "@/components/ui";
 import type { ManagerSeason } from "@/lib/db/collections";
 import { formatPct, formatPoints, formatRecord, ordinal } from "@/lib/format";
 import { getHall, getManager } from "@/lib/hall/queries";
+import { hofProbability, leagueTracksPoints } from "@/lib/hall/scoring";
 
 function seasonResult(s: ManagerSeason): { text: string; tone: "gold" | "silver" | "plain" | "dim" } {
   if (s.result === "CHAMPION") return { text: "Champion", tone: "gold" };
@@ -23,6 +24,7 @@ export default async function ManagerPage({ params }: PageProps<"/hall/[code]/ma
   const m = getManager(hall, decodeURIComponent(managerId));
   if (!m) notFound();
   const rank = hall.records.managers.findIndex((x) => x.managerId === m.managerId) + 1;
+  const prob = hofProbability(m, leagueTracksPoints(hall.records.managers));
 
   const stats: { label: string; value: string | null }[] = [
     { label: "Regular-season wins", value: String(m.wins) },
@@ -33,7 +35,7 @@ export default async function ManagerPage({ params }: PageProps<"/hall/[code]/ma
     { label: "Best regular-season finish", value: m.bestFinish !== null ? ordinal(m.bestFinish) : null },
     { label: "Worst regular-season finish", value: m.worstFinish !== null ? ordinal(m.worstFinish) : null },
     { label: "Seasons played", value: String(m.seasonsPlayed) },
-    { label: "Hall of Fame Score", value: `${m.hofScore} (#${rank})` },
+    { label: "HOF points", value: `${m.hofScore} (#${rank})` },
   ];
 
   return (
@@ -58,6 +60,40 @@ export default async function ManagerPage({ params }: PageProps<"/hall/[code]/ma
         <StatTile value={m.championships} label="Titles" accent />
         <StatTile value={m.finals} label="Finals" delay={80} />
         <StatTile value={m.playoffs} label="Playoffs" delay={160} />
+      </section>
+
+      <section className="rounded-2xl border border-line bg-surface p-5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">Hall of Fame Probability</p>
+            <p className={`mt-1 font-display text-5xl font-semibold leading-none ${prob.inducted ? "text-accent" : ""}`}>
+              {prob.inducted ? "Inducted" : `${prob.percent}%`}
+            </p>
+          </div>
+          <p className="text-right text-sm text-muted">
+            <span className="block font-display text-2xl text-fg">{m.hofScore}</span>
+            HOF points
+          </p>
+        </div>
+        <ul className="mt-5 space-y-3">
+          {prob.criteria.map((c) => (
+            <li key={c.key}>
+              <div className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="text-muted">{c.label}</span>
+                <span className="tabular-nums">
+                  <span className="font-semibold">{Math.round(c.value).toLocaleString("en-US")}</span>
+                  <span className="text-subtle"> / {c.target.toLocaleString("en-US")}</span>
+                </span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-sunken">
+                <div
+                  className={`h-full rounded-full ${c.progress >= 1 ? "bg-accent" : "bg-fg"}`}
+                  style={{ width: `${Math.round(c.progress * 100)}%` }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section>

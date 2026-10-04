@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { SeasonChips } from "@/components/hall";
 import { Eyebrow, pressable, StatTile, TrophyIcon } from "@/components/ui";
 import { getHall, hallSummary } from "@/lib/hall/queries";
+import { hofProbability, leagueTracksPoints } from "@/lib/hall/scoring";
 
 export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
   const hall = await getHall((await params).code);
@@ -10,7 +11,11 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
   const code = hall.league.code!;
   const summary = hallSummary(hall);
   const recentChampions = hall.records.champions.filter((c) => c.champion).slice(0, 4);
-  const leaders = hall.records.managers.slice(0, 3);
+  const pointsTracked = leagueTracksPoints(hall.records.managers);
+  const leaders = hall.records.managers
+    .map((m) => ({ ...m, prob: hofProbability(m, pointsTracked) }))
+    .sort((a, b) => b.prob.percent - a.prob.percent || b.hofScore - a.hofScore || a.name.localeCompare(b.name))
+    .slice(0, 3);
 
   return (
     <div className="space-y-12">
@@ -46,7 +51,7 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
                     {m.name}
                   </span>
                   <span className="shrink-0 text-sm text-muted">
-                    {m.championships} {m.championships === 1 ? "title" : "titles"}
+                    {m.prob.inducted ? "Inducted" : `${m.prob.percent}% HOF`}
                   </span>
                 </li>
               ))}

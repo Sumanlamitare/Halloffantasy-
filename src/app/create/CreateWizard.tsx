@@ -284,10 +284,11 @@ function ConnectStep({
             <p>
               <code className="text-fg">espn_s2</code> and{" "}
               <code className="text-fg">SWID</code> let our server read your
-              private league from ESPN. They are sent securely to our server,
-              encrypted, used only for this import, and deleted when it
-              finishes. They are never shown on screen, saved in your browser,
-              or shared with league members. Never share them with anyone else.
+              private league from ESPN. They are sent securely to our server
+              and stored encrypted. They are deleted when the import finishes,
+              unless you turn on automatic updates in the next step. They are
+              never shown on screen, saved in your browser, or shared with
+              league members. Never share them with anyone else.
             </p>
             <details className="rounded-xl border border-line bg-sunken px-4 py-3">
               <summary className="cursor-pointer py-1 font-medium text-fg">
@@ -403,6 +404,7 @@ function ImportStep({
   const [selected, setSelected] = useState<number[]>(
     job.league.availableSeasons,
   );
+  const [autoUpdate, setAutoUpdate] = useState(true);
   const [running, setRunning] = useState(job.status === "running");
   const [error, setError] = useState<string | null>(null);
   const cancelled = useRef(false);
@@ -453,6 +455,7 @@ function ImportStep({
       const view = await post<ImportView>("/api/import/start", {
         importId: job.importId,
         seasons: selected,
+        autoUpdate,
       });
       onUpdate(view);
       await loop();
@@ -566,6 +569,26 @@ function ImportStep({
               </label>
             ))}
           </div>
+          <label className="ripple flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-surface px-4 py-4">
+            <input
+              type="checkbox"
+              checked={autoUpdate}
+              onChange={(e) => setAutoUpdate(e.target.checked)}
+              className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-fg)]"
+            />
+            <span>
+              <span className="block text-[15px] font-medium text-fg">
+                Keep this Hall updated automatically
+              </span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted">
+                The current season refreshes from ESPN while people view the
+                Hall (at most every 30 minutes) and once a day, and new seasons
+                are added when your league renews.
+                {job.league.isPrivate &&
+                  " Your ESPN cookies will be kept encrypted on the server so it can do this. Uncheck to have them deleted right after this import."}
+              </span>
+            </span>
+          </label>
           {error && (
             <p
               role="alert"
