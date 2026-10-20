@@ -25,7 +25,7 @@ export function JoinForm() {
         maxLength={16}
         aria-invalid={!!state.error}
         aria-describedby={state.error ? "code-error" : undefined}
-        className="block w-full rounded-2xl border border-line bg-surface px-4 py-4 text-center font-display text-2xl uppercase tracking-[0.2em] text-fg placeholder:text-subtle transition-shadow focus:border-fg focus:shadow-[0_0_0_4px_rgba(28,27,25,0.06)] focus:outline-none"
+        className="block w-full rounded-2xl border border-line bg-surface px-4 py-4 text-center font-display text-2xl uppercase tracking-[0.2em] text-fg placeholder:text-subtle transition-shadow focus:border-accent focus:shadow-[0_0_0_4px_rgba(212,173,87,0.15)] focus:outline-none"
       />
       {state.error && (
         <p id="code-error" role="alert" className="page-enter text-center text-sm text-danger">

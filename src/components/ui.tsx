@@ -38,7 +38,8 @@ export function SectionTitle({ eyebrow, title, children }: { eyebrow?: string; t
   return (
     <header className="mb-6">
       {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
-      <h1 className="font-display text-3xl font-semibold uppercase leading-tight tracking-wide sm:text-4xl">{title}</h1>
+      <h1 className="gold-text font-display text-3xl font-bold uppercase leading-tight tracking-[0.06em] sm:text-5xl">{title}</h1>
+      <div aria-hidden="true" className="mt-4 h-px w-24 bg-gradient-to-r from-accent to-transparent" />
       {children && <div className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">{children}</div>}
     </header>
   );
@@ -48,7 +49,7 @@ export function SectionTitle({ eyebrow, title, children }: { eyebrow?: string; t
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-line bg-surface p-5 shadow-[0_1px_2px_rgba(28,27,25,0.04)] ${className}`}>
+    <div className={`marble rounded-xl p-5 ${className}`}>
       {children}
     </div>
   );
@@ -56,8 +57,8 @@ export function Card({ children, className = "" }: { children: ReactNode; classN
 
 export function StatTile({ value, label, accent = false, delay = 0 }: { value: number; label: string; accent?: boolean; delay?: number }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface px-3 py-5 text-center shadow-[0_1px_2px_rgba(28,27,25,0.04)]">
-      <div className={`font-display text-4xl font-semibold leading-none sm:text-5xl ${accent ? "text-accent" : "text-fg"}`}>
+    <div className="marble rounded-xl px-3 py-5 text-center">
+      <div className={`font-display text-4xl font-bold leading-none sm:text-5xl ${accent ? "gold-text" : "text-fg"}`}>
         <CountUp value={value} delay={delay / 1000} />
       </div>
       <div className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{label}</div>
@@ -74,8 +75,10 @@ export function Unavailable({ children }: { children: ReactNode }) {
 const base =
   "ripple inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold tracking-wide transition-[transform,background-color,box-shadow] duration-200 ease-[var(--ease-emphasized)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45";
 const variants = {
-  primary: "bg-fg text-surface shadow-[0_2px_8px_rgba(28,27,25,0.18)] hover:bg-[#33312d]",
-  secondary: "border border-line bg-surface text-fg hover:bg-sunken",
+  // Polished gold
+  primary:
+    "bg-gradient-to-b from-[#f3d68f] via-[#d4ad57] to-[#a77e2e] text-[#1f1607] shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_10px_24px_-10px_rgba(212,173,87,0.7)] hover:brightness-110",
+  secondary: "border border-accent/50 bg-transparent text-accent hover:bg-accent/10",
   ghost: "text-muted hover:text-fg",
 };
 
@@ -99,11 +102,11 @@ export function Wordmark({ href = "/" }: { href?: string }) {
   return (
     <Link href={href} className="inline-flex min-h-11 items-center gap-2 text-fg">
       <TrophyIcon className="h-5 w-5 text-accent" />
-      <span className="font-serif text-lg italic">Hall of Fantasy</span>
+      <span className="font-display text-sm font-semibold uppercase tracking-[0.22em]">Hall of Fantasy</span>
     </Link>
   );
 }
 
 /** Interactive card surface with ripple + press feedback. */
 export const pressable =
-  "ripple block rounded-2xl border border-line bg-surface shadow-[0_1px_2px_rgba(28,27,25,0.04)] transition-[transform,box-shadow,border-color] duration-200 ease-[var(--ease-emphasized)] hover:shadow-[0_6px_20px_rgba(28,27,25,0.07)] active:scale-[0.985]";
+  "ripple marble block rounded-xl transition-[transform,border-color] duration-200 ease-[var(--ease-emphasized)] hover:border-accent/50 active:scale-[0.985]";

@@ -102,7 +102,7 @@ function StepIndicator({ step }: { step: Step }) {
             >
               <div className="h-1 overflow-hidden rounded-full bg-line">
                 <div
-                  className={`h-full origin-left rounded-full bg-fg transition-transform duration-500 ease-[var(--ease-emphasized)] ${state === "todo" ? "scale-x-0" : "scale-x-100"}`}
+                  className={`h-full origin-left rounded-full bg-accent transition-transform duration-500 ease-[var(--ease-emphasized)] ${state === "todo" ? "scale-x-0" : "scale-x-100"}`}
                 />
               </div>
               <p
@@ -210,7 +210,7 @@ function ConnectStep({
   }
 
   const inputCls =
-    "block w-full rounded-2xl border border-line bg-surface px-4 py-3.5 text-base text-fg placeholder:text-subtle transition-shadow focus:border-fg focus:shadow-[0_0_0_4px_rgba(28,27,25,0.06)] focus:outline-none";
+    "block w-full rounded-2xl border border-line bg-surface px-4 py-3.5 text-base text-fg placeholder:text-subtle transition-shadow focus:border-accent focus:shadow-[0_0_0_4px_rgba(212,173,87,0.15)] focus:outline-none";
 
   return (
     <form onSubmit={submit} className="space-y-6" autoComplete="off">
@@ -270,7 +270,7 @@ function ConnectStep({
           type="checkbox"
           checked={isPrivate}
           onChange={(e) => setIsPrivate(e.target.checked)}
-          className="h-5 w-5 accent-[var(--color-fg)]"
+          className="h-5 w-5 accent-[var(--color-accent)]"
         />
         <span className="text-[15px] text-fg">My league is private</span>
       </label>
@@ -548,7 +548,7 @@ function ImportStep({
                 key={s}
                 className={`ripple flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition-colors duration-200 ${
                   selected.includes(s)
-                    ? "border-fg bg-accent-soft"
+                    ? "border-accent bg-accent-soft"
                     : "border-line bg-surface"
                 }`}
               >
@@ -556,7 +556,7 @@ function ImportStep({
                   type="checkbox"
                   checked={selected.includes(s)}
                   onChange={() => toggle(s)}
-                  className="h-5 w-5 shrink-0 accent-[var(--color-fg)]"
+                  className="h-5 w-5 shrink-0 accent-[var(--color-accent)]"
                 />
                 <span>
                   <span className="block font-display text-xl leading-none text-fg">
@@ -574,7 +574,7 @@ function ImportStep({
               type="checkbox"
               checked={autoUpdate}
               onChange={(e) => setAutoUpdate(e.target.checked)}
-              className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-fg)]"
+              className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-accent)]"
             />
             <span>
               <span className="block text-[15px] font-medium text-fg">
@@ -609,7 +609,7 @@ function ImportStep({
         <div className="space-y-4" aria-live="polite">
           <div className="h-2 overflow-hidden rounded-full bg-line">
             <div
-              className="h-full rounded-full bg-fg transition-[width] duration-700 ease-[var(--ease-emphasized)]"
+              className="h-full rounded-full bg-accent transition-[width] duration-700 ease-[var(--ease-emphasized)]"
               style={{
                 width: `${Math.round((completedCount / total) * 100)}%`,
               }}
@@ -725,16 +725,16 @@ function DoneStep({ code, leagueName }: { code: string; leagueName: string }) {
   return (
     <div className="text-center">
       <TrophyIcon className="intro-trophy mx-auto h-14 w-14 text-accent" />
-      <h1 className="mt-6 font-display text-3xl font-semibold uppercase leading-tight tracking-wide sm:text-4xl">
+      <h1 className="gold-text mt-6 font-display text-3xl font-black uppercase leading-tight tracking-[0.05em] sm:text-4xl">
         Your Hall of Fantasy is ready.
       </h1>
       <p className="mt-3 text-[15px] text-muted">{leagueName}</p>
 
-      <div className="mx-auto mt-8 max-w-sm rounded-3xl border border-line bg-surface px-5 py-7 shadow-[0_8px_30px_rgba(28,27,25,0.06)]">
-        <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+      <div className="plaque mx-auto mt-8 max-w-sm px-5 pb-8 pt-9">
+        <p className="engraved-muted font-display text-[11px] font-bold uppercase tracking-[0.3em]">
           League Code
         </p>
-        <p className="mt-2 select-all break-all font-display text-4xl font-semibold tracking-[0.12em] text-accent-gradient sm:text-5xl">
+        <p className="engraved mt-2 select-all break-all font-display text-4xl font-black tracking-[0.1em] sm:text-5xl">
           {code}
         </p>
       </div>

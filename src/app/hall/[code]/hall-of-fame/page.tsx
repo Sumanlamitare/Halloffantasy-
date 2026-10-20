@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { CountUp, PressLink, ProgressBar, Stagger, StaggerItem } from "@/components/motion";
-import { Card, SectionTitle, TrophyIcon, Unavailable } from "@/components/ui";
+import { roman } from "@/components/hall";
+import { Card, SectionTitle, Unavailable } from "@/components/ui";
 import { getHall } from "@/lib/hall/queries";
 import { HOF_INDUCTION, HOF_SCORE_RULES, hofProbability, leagueTracksPoints } from "@/lib/hall/scoring";
 
@@ -18,101 +19,112 @@ export default async function HallOfFamePage({ params }: PageProps<"/hall/[code]
 
   const criteria = HOF_INDUCTION.filter((c) => c.key !== "pointsFor" || pointsTracked);
 
+  const inductees = rows.filter((r) => r.p.inducted);
+  const candidates = rows.filter((r) => !r.p.inducted);
+  const podium = candidates.slice(0, 3);
+  const rest = candidates.slice(3);
+
+  const plaqueFor = ({ m, p }: (typeof rows)[number], rank: number, big = false) => (
+    <PressLink
+      href={`/hall/${code}/managers/${m.managerId}`}
+      className={`${p.inducted ? "plaque plaque-gold" : "plaque"} block h-full text-center ${
+        big ? "px-5 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-10" : "px-3 pb-5 pt-6 sm:px-5 sm:pb-6 sm:pt-7"
+      }`}
+    >
+      <span className="engraved-muted block font-display text-[10px] font-bold tracking-[0.3em] sm:text-xs">
+        {p.inducted ? "INDUCTED" : `No. ${roman(rank)}`}
+      </span>
+      <span
+        className={`engraved mt-2 block break-words font-display font-black uppercase leading-tight tracking-[0.04em] ${
+          big ? "text-2xl sm:text-4xl" : "text-[15px] sm:text-2xl"
+        }`}
+      >
+        {m.name}
+      </span>
+      {m.championshipSeasons.length > 0 && (
+        <span className="engraved-muted mt-1 block font-serif text-[13px] font-semibold italic sm:text-sm">
+          Champion {m.championshipSeasons.join(" · ")}
+        </span>
+      )}
+      <span className={`engraved mt-3 block font-display font-black leading-none sm:mt-4 ${big ? "text-5xl" : "text-3xl sm:text-4xl"}`}>
+        {p.inducted ? "100%" : <><CountUp value={p.percent} delay={0.2} />%</>}
+      </span>
+      <span className="engraved-muted mt-1 block text-[10px] font-bold uppercase tracking-[0.2em]">
+        {p.inducted ? "Hall of Famer" : "To induction"}
+      </span>
+      {/* engraved groove showing progress */}
+      <span className="mx-auto mt-3 block h-2 max-w-[12rem] sm:mt-4 overflow-hidden rounded-full bg-[#3d240c]/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.6),0_1px_0_rgba(255,222,170,0.35)]">
+        <ProgressBar percent={p.percent} className="h-full !bg-transparent" accent />
+      </span>
+      <span className="engraved-muted mt-3 block text-[11px] font-semibold sm:mt-4 sm:text-xs">
+        {m.wins}-{m.losses}
+        {m.ties ? `-${m.ties}` : ""} · {m.playoffs} playoffs · {m.hofScore} HOF pts
+      </span>
+    </PressLink>
+  );
+
   return (
     <div>
-      <SectionTitle eyebrow="The Greatest Managers" title="Hall of Fame">
-        Leaderboard by Hall of Fame Probability, calculated only from {completedSeasons.length} completed season
+      <SectionTitle eyebrow="The Gallery" title="Hall of Fame">
+        Every manager&apos;s plaque, ranked by Hall of Fame Probability, from {completedSeasons.length} completed season
         {completedSeasons.length === 1 ? "" : "s"} of imported ESPN results.
       </SectionTitle>
 
       {rows.length === 0 ? (
         <Unavailable>No managers have been imported yet.</Unavailable>
       ) : (
-        <>
-          {/* Podium: 2nd · 1st · 3rd */}
-          {rows.length >= 3 && (
-            <Stagger className="mb-8 grid grid-cols-3 items-end gap-2 sm:gap-4">
-              {[1, 0, 2].map((idx) => {
-                const { m, p } = rows[idx];
-                const first = idx === 0;
-                return (
-                  <StaggerItem key={m.managerId}>
-                    <PressLink
-                      href={`/hall/${code}/managers/${m.managerId}`}
-                      className={`ripple relative flex flex-col items-center overflow-hidden rounded-3xl border px-2 text-center sm:px-4 ${
-                        first
-                          ? "border-fg bg-fg pb-6 pt-8 text-surface shadow-[0_18px_50px_-24px_rgba(26,24,20,0.6)] sm:pt-10"
-                          : "border-line bg-surface pb-5 pt-6"
-                      }`}
-                    >
-                      <span className={`font-display text-sm tracking-[0.2em] ${first ? "text-accent" : "text-subtle"}`}>
-                        {idx + 1 === 1 ? "1ST" : idx + 1 === 2 ? "2ND" : "3RD"}
-                      </span>
-                      <TrophyIcon className={`mt-2 ${first ? "h-9 w-9 text-accent" : "h-6 w-6 text-subtle"}`} />
-                      <span
-                        className={`mt-3 line-clamp-2 w-full break-words font-display font-semibold uppercase leading-tight tracking-wide ${
-                          first ? "text-lg sm:text-2xl" : "text-sm sm:text-xl"
-                        }`}
-                      >
-                        {m.name}
-                      </span>
-                      <span className={`mt-3 font-display font-semibold leading-none ${first ? "text-4xl sm:text-5xl" : "text-2xl sm:text-4xl"} ${p.inducted ? "text-accent" : ""}`}>
-                        {p.inducted ? "HOF" : <><CountUp value={p.percent} delay={0.2} />%</>}
-                      </span>
-                      <span className={`mt-1 text-xs ${first ? "text-surface/70" : "text-muted"}`}>{m.hofScore} HOF pts</span>
-                    </PressLink>
-                  </StaggerItem>
-                );
-              })}
-            </Stagger>
+        <div className="space-y-14">
+          {inductees.length > 0 && (
+            <section className="relative">
+              <div aria-hidden="true" className="spotlight pointer-events-none absolute inset-x-0 -top-20 h-72" />
+              <h2 className="relative mb-5 text-center font-display text-sm font-bold uppercase tracking-[0.35em] text-accent">Inductees</h2>
+              <Stagger className="relative grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {inductees.map((r, i) => (
+                  <StaggerItem key={r.m.managerId}>{plaqueFor(r, i + 1, true)}</StaggerItem>
+                ))}
+              </Stagger>
+            </section>
           )}
 
-          <div className="overflow-hidden rounded-3xl border border-line bg-surface">
-            <div className="hidden grid-cols-[2.5rem_1fr_7rem_6rem] items-center gap-3 border-b border-line px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-subtle sm:grid">
-              <span>#</span>
-              <span>Manager</span>
-              <span className="text-right">HOF Prob.</span>
-              <span className="text-right">HOF Pts</span>
-            </div>
-            <Stagger as="ol" className="divide-y divide-line">
-              {rows.map(({ m, p }, i) => (
-                <StaggerItem as="li" key={m.managerId}>
-                  <PressLink
-                    href={`/hall/${code}/managers/${m.managerId}`}
-                    className="ripple grid grid-cols-[2rem_1fr_auto] items-center gap-3 px-5 py-4 transition-colors hover:bg-sunken sm:grid-cols-[2.5rem_1fr_7rem_6rem]"
+          {podium.length > 0 && (
+            <section className="relative">
+              <div aria-hidden="true" className="spotlight pointer-events-none absolute inset-x-0 -top-20 h-72" />
+              <h2 className="relative mb-6 text-center font-display text-sm font-bold uppercase tracking-[0.35em] text-accent sm:mb-12">
+                {inductees.length ? "Closest to Induction" : "Leading Candidates"}
+              </h2>
+              <Stagger className="relative grid grid-cols-2 items-end gap-3 sm:grid-cols-3 sm:gap-4">
+                {podium.map((r, idx) => (
+                  <StaggerItem
+                    key={r.m.managerId}
+                    className={
+                      idx === 0
+                        ? "col-span-2 sm:order-2 sm:col-span-1 sm:-translate-y-6"
+                        : idx === 1
+                          ? "sm:order-1"
+                          : "sm:order-3"
+                    }
                   >
-                    <span className={`font-display text-xl ${i === 0 ? "text-accent" : "text-subtle"}`}>{i + 1}</span>
-                    <span className="min-w-0">
-                      <span className="flex items-center gap-2">
-                        <span className="truncate font-display text-lg font-semibold uppercase tracking-wide">{m.name}</span>
-                        {m.championships > 0 && (
-                          <span className="flex shrink-0 items-center gap-0.5 text-sm text-accent" aria-label={`${m.championships} championships`}>
-                            <TrophyIcon className="h-4 w-4" />
-                            {m.championships > 1 && m.championships}
-                          </span>
-                        )}
-                      </span>
-                      <ProgressBar percent={p.percent} accent={p.inducted} delay={0.1 + i * 0.05} className="mt-2 h-1.5" />
-                    </span>
-                    <span className="text-right sm:hidden">
-                      <span className={`block font-display text-2xl font-semibold leading-none ${p.inducted ? "text-accent" : ""}`}>
-                        {p.inducted ? "HOF" : <><CountUp value={p.percent} delay={0.1 + i * 0.05} />%</>}
-                      </span>
-                      <span className="mt-1 block text-xs text-muted">{m.hofScore} pts</span>
-                    </span>
-                    <span className={`hidden text-right font-display text-2xl font-semibold sm:block ${p.inducted ? "text-accent" : ""}`}>
-                      {p.inducted ? "Inducted" : <><CountUp value={p.percent} delay={0.1 + i * 0.05} />%</>}
-                    </span>
-                    <span className="hidden text-right font-display text-2xl text-muted sm:block">{m.hofScore}</span>
-                  </PressLink>
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </div>
-        </>
+                    {plaqueFor(r, inductees.length + idx + 1, idx === 0)}
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            </section>
+          )}
+
+          {rest.length > 0 && (
+            <section>
+              <h2 className="mb-5 text-center font-display text-sm font-bold uppercase tracking-[0.35em] text-muted">The Gallery</h2>
+              <Stagger className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+                {rest.map((r, i) => (
+                  <StaggerItem key={r.m.managerId} className="h-full">{plaqueFor(r, inductees.length + podium.length + i + 1)}</StaggerItem>
+                ))}
+              </Stagger>
+            </section>
+          )}
+        </div>
       )}
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
+      <div className="mt-16 grid gap-4 md:grid-cols-2">
         <Card>
           <h2 className="font-display text-lg uppercase tracking-wide">How Hall of Fame Probability works</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">

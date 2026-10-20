@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SeasonChips } from "@/components/hall";
+import { Banner, SeasonChips } from "@/components/hall";
 import { ActiveMarker, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { Card, Eyebrow, SectionTitle, TrophyIcon, Unavailable } from "@/components/ui";
 import { formatPoints, formatRecord, seasonSpan } from "@/lib/format";
@@ -19,40 +19,39 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
 
   return (
     <div className="space-y-10">
-      <SectionTitle eyebrow="Banners in the Rafters" title="Champions" />
+      <SectionTitle eyebrow="The Rafters" title="Champions">
+        Every championship banner the league has raised. Tap a banner to see how that title was won.
+      </SectionTitle>
 
       {champions.length === 0 ? (
         <Unavailable>No seasons imported yet.</Unavailable>
       ) : (
         <>
-          {/* Timeline */}
-          <Stagger as="ol" className="relative space-y-3 border-l border-line pl-6">
-            {champions.map((c) => (
-              <StaggerItem as="li" key={c.season} className="relative">
-                <span className="absolute -left-[31px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-accent" aria-hidden="true" />
-                <Link
-                  href={`/hall/${code}/champions?season=${c.season}`}
-                  scroll={false}
-                  className="ripple relative flex min-h-14 items-center gap-4 overflow-hidden rounded-2xl border border-line bg-surface px-4 py-3 transition-colors duration-200 hover:bg-sunken"
-                >
+          {/* The rafters: one banner per season */}
+          <div>
+            <Stagger className="mt-6 flex flex-wrap justify-center gap-y-10">
+              {champions.map((c, i) => (
+                <StaggerItem key={c.season} className="relative w-1/3 sm:w-1/4 lg:w-1/6">
                   {selected?.season === c.season && (
-                    <ActiveMarker id="champion-active" className="absolute inset-0 rounded-2xl border-2 border-fg" />
+                    <ActiveMarker
+                      id="champion-active"
+                      className="pointer-events-none absolute inset-x-1 -bottom-3 -top-1 rounded-lg bg-[radial-gradient(60%_50%_at_50%_10%,rgba(255,225,150,0.28),transparent_75%)]"
+                    />
                   )}
-                  <span className="relative w-14 shrink-0 font-display text-2xl font-semibold text-muted">{c.season}</span>
-                  {c.champion ? (
-                    <span className="relative flex min-w-0 items-center gap-2">
-                      <TrophyIcon className="h-5 w-5 shrink-0 text-accent" />
-                      <span className="min-w-0 truncate font-display text-lg uppercase tracking-wide text-fg">
-                        {c.champion.name}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="relative text-sm text-subtle">{c.isComplete ? "Champion unavailable" : "Season in progress"}</span>
-                  )}
-                </Link>
-              </StaggerItem>
-            ))}
-          </Stagger>
+                  <Link href={`/hall/${code}/champions?season=${c.season}`} scroll={false} className="relative block">
+                    <Banner
+                      season={c.season}
+                      champion={c.champion?.name ?? (c.isComplete ? "Not reported" : null)}
+                      teamName={c.champion?.teamName}
+                      inProgress={!c.isComplete}
+                      selected={selected?.season === c.season}
+                      delay={i * 0.9}
+                    />
+                  </Link>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
 
           {/* Season detail */}
           {selected && (

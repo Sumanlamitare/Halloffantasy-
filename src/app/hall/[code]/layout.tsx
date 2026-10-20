@@ -43,7 +43,7 @@ export default async function HallLayout({ children, params }: LayoutProps<"/hal
   return (
     <IntroProvider name={hall.league.name} code={code} stats={introStats}>
       <div className="flex min-h-dvh flex-col">
-        <header className="sticky top-0 z-30 border-b border-line/70 bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+        <header className="sticky top-0 z-30 border-b border-accent/25 bg-[#0d0c0a]/90 pt-[env(safe-area-inset-top)] shadow-[0_10px_30px_-20px_rgba(0,0,0,0.9)] backdrop-blur-md">
           <div className="mx-auto flex min-h-14 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
             <HallBrand name={hall.league.name} code={code} />
             <HallNav code={code} />

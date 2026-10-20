@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Marquee, SeasonChips } from "@/components/hall";
+import { Banner, roman, SeasonChips } from "@/components/hall";
 import { CountUp, PressLink, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { Eyebrow, TrophyIcon } from "@/components/ui";
 import { getHall, hallSummary } from "@/lib/hall/queries";
@@ -13,115 +13,127 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
   const champions = hall.records.champions.filter((c) => c.champion);
   const reigning = champions[0] ?? null;
   const pointsTracked = leagueTracksPoints(hall.records.managers);
-  const leaders = hall.records.managers
+  const inducted = hall.records.managers.filter((m) => hofProbability(m, pointsTracked).inducted).length;
+  const leader = hall.records.managers
     .map((m) => ({ ...m, prob: hofProbability(m, pointsTracked) }))
-    .sort((a, b) => b.prob.percent - a.prob.percent || b.hofScore - a.hofScore || a.name.localeCompare(b.name))
-    .slice(0, 3);
-  const span =
-    summary.seasons.length > 1
-      ? `${Math.min(...summary.seasons)}–${String(Math.max(...summary.seasons)).slice(-2)}`
-      : String(summary.seasons[0] ?? "");
+    .sort((a, b) => b.prob.percent - a.prob.percent || b.hofScore - a.hofScore)[0];
+  const since = summary.seasons.length ? Math.min(...summary.seasons) : null;
 
-  const sections = [
+  const galleries = [
     {
       href: `/hall/${code}/hall-of-fame`,
       title: "Hall of Fame",
-      note: leaders[0] ? `${leaders[0].name} leads at ${leaders[0].prob.inducted ? "Inducted" : `${leaders[0].prob.percent}%`}` : "The leaderboard",
+      note: inducted
+        ? `${inducted} inducted`
+        : leader
+          ? `${leader.name} leads the candidates at ${leader.prob.percent}%`
+          : "The inductees",
     },
-    { href: `/hall/${code}/champions`, title: "Champions", note: `${summary.championshipCount} banners` },
-    { href: `/hall/${code}/seasons`, title: "Seasons", note: `${summary.seasonCount} seasons of standings & playoffs` },
-    { href: `/hall/${code}/records`, title: "Records", note: `${hall.records.records.length} all-time records` },
+    { href: `/hall/${code}/champions`, title: "The Rafters", note: `${summary.championshipCount} championship banners` },
+    { href: `/hall/${code}/seasons`, title: "Season Archive", note: `${summary.seasonCount} seasons of standings & playoffs` },
+    { href: `/hall/${code}/records`, title: "Record Book", note: `${hall.records.records.length} all-time records` },
   ];
 
   return (
-    <div className="space-y-16">
-      {/* Hero */}
-      <section className="relative pt-6 text-center">
-        <p
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 select-none font-display text-[5.5rem] font-bold leading-none tracking-tight opacity-[0.07] sm:text-[11rem]"
-          style={{ color: "transparent", WebkitTextStroke: "2px #1a1814" }}
-        >
-          {span}
-        </p>
-        <Reveal>
-          <TrophyIcon className="relative mx-auto h-10 w-10 text-accent" />
-          <h1 className="relative mt-6 break-words font-display text-[2.75rem] font-bold uppercase leading-[0.98] tracking-wide sm:text-7xl md:text-8xl">
+    <div className="space-y-20">
+      {/* Entrance */}
+      <section className="relative pt-4 text-center">
+        <div aria-hidden="true" className="spotlight pointer-events-none absolute inset-x-0 -top-16 mx-auto h-[28rem] max-w-3xl" />
+        <Reveal className="relative">
+          {since && (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-accent/80">Est. {since}</p>
+          )}
+          <h1 className="gold-text mt-5 break-words font-display text-[2.6rem] font-black uppercase leading-[1.02] tracking-[0.06em] drop-shadow-[0_4px_18px_rgba(212,173,87,0.25)] sm:text-7xl md:text-8xl">
             {summary.name}
           </h1>
-          <p className="mt-4 font-serif text-xl italic text-muted sm:text-2xl">
-            Hall of Fantasy <span className="not-italic text-subtle">·</span> Fantasy Basketball
-          </p>
+          <div aria-hidden="true" className="mx-auto mt-6 flex items-center justify-center gap-3 text-accent">
+            <span className="h-px w-16 bg-gradient-to-r from-transparent to-accent" />
+            <TrophyIcon className="h-5 w-5" />
+            <span className="h-px w-16 bg-gradient-to-l from-transparent to-accent" />
+          </div>
+          <p className="mt-4 font-serif text-2xl italic text-muted sm:text-3xl">Hall of Fantasy</p>
         </Reveal>
 
-        <Reveal delay={0.1} className="mx-auto mt-10 grid max-w-2xl grid-cols-3 divide-x divide-line border-y border-line">
+        {/* Bronze stat plates */}
+        <Stagger className="relative mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-3 sm:gap-5">
           {[
-            [summary.seasonCount, summary.seasonCount === 1 ? "Season" : "Seasons", false],
-            [summary.managerCount, "Managers", false],
-            [summary.championshipCount, "Titles", true],
-          ].map(([value, label, accent]) => (
-            <div key={label as string} className="px-2 py-5">
-              <p className={`font-display text-5xl font-semibold leading-none sm:text-6xl ${accent ? "text-accent" : ""}`}>
-                <CountUp value={value as number} delay={0.2} />
-              </p>
-              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">{label as string}</p>
-            </div>
+            [summary.seasonCount, summary.seasonCount === 1 ? "Season" : "Seasons"],
+            [summary.managerCount, "Managers"],
+            [summary.championshipCount, "Titles"],
+          ].map(([value, label]) => (
+            <StaggerItem key={label as string}>
+              <div className="plaque px-2 pb-5 pt-6 text-center">
+                <p className="engraved font-display text-4xl font-black leading-none sm:text-5xl">
+                  <CountUp value={value as number} delay={0.25} />
+                </p>
+                <p className="engraved-muted mt-2 text-[10px] font-bold uppercase tracking-[0.2em] sm:text-[11px]">{label as string}</p>
+              </div>
+            </StaggerItem>
           ))}
-        </Reveal>
+        </Stagger>
       </section>
 
-      {/* Champions banner */}
+      {/* The rafters */}
       {champions.length > 0 && (
-        <Marquee items={champions.map((c) => ({ strong: `${c.season} ${c.champion!.name}`, soft: "champion" }))} />
+        <section>
+          <div className="mb-2 text-center">
+            <Eyebrow className="text-accent/80">The Rafters</Eyebrow>
+            <h2 className="mt-2 font-display text-2xl font-bold uppercase tracking-[0.08em] sm:text-3xl">Championship Banners</h2>
+          </div>
+          <Stagger className="mt-6 flex flex-wrap justify-center gap-y-10">
+            {champions.map((c, i) => (
+              <StaggerItem key={c.season} className="w-1/3 sm:w-1/4 lg:w-1/6">
+                <PressLink href={`/hall/${code}/champions?season=${c.season}`} className="block">
+                  <Banner season={c.season} champion={c.champion!.name} teamName={c.champion!.teamName} delay={i * 0.9} />
+                </PressLink>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        </section>
       )}
 
       {/* Reigning champion */}
       {reigning && (
-        <Reveal>
-          <PressLink
-            href={`/hall/${code}/champions?season=${reigning.season}`}
-            className="ripple relative block overflow-hidden rounded-3xl border border-line bg-surface p-6 shadow-[0_10px_40px_-20px_rgba(26,24,20,0.35)] sm:p-10"
-          >
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-6 -top-10 font-display text-[9rem] font-bold leading-none opacity-[0.06] sm:text-[13rem]"
-            >
-              {reigning.season}
-            </span>
-            <Eyebrow className="relative">Reigning champion · {reigning.season}</Eyebrow>
-            <div className="relative mt-4 flex items-end justify-between gap-6">
-              <div className="min-w-0">
-                <p className="break-words font-serif text-4xl font-bold leading-tight sm:text-6xl">{reigning.champion!.name}</p>
-                <p className="mt-2 text-muted">{reigning.champion!.teamName}</p>
-                {reigning.finalScore && (
-                  <p className="mt-4 text-sm text-subtle">
-                    Won the final {reigning.finalScore.champion} – {reigning.finalScore.runnerUp}
-                    {reigning.runnerUp ? ` over ${reigning.runnerUp.name}` : ""}
-                  </p>
-                )}
-              </div>
-              <TrophyIcon className="h-14 w-14 shrink-0 text-accent sm:h-20 sm:w-20" />
+        <Reveal className="relative">
+          <div aria-hidden="true" className="spotlight pointer-events-none absolute inset-x-0 -top-24 h-72" />
+          <PressLink href={`/hall/${code}/champions?season=${reigning.season}`} className="relative mx-auto block max-w-3xl">
+            <div className="plaque px-7 pb-10 pt-11 text-center sm:px-14">
+              <p className="engraved-muted font-display text-xs font-bold uppercase tracking-[0.35em]">
+                Reigning Champion · {reigning.season}
+              </p>
+              <p className="engraved mt-4 break-words font-display text-4xl font-black uppercase leading-tight tracking-[0.05em] sm:text-6xl">
+                {reigning.champion!.name}
+              </p>
+              <p className="engraved-muted mt-2 font-serif text-xl italic">{reigning.champion!.teamName}</p>
+              {reigning.finalScore && (
+                <p className="engraved-muted mt-5 text-sm font-semibold">
+                  Won the final {reigning.finalScore.champion} – {reigning.finalScore.runnerUp}
+                  {reigning.runnerUp ? ` over ${reigning.runnerUp.name}` : ""}
+                </p>
+              )}
             </div>
           </PressLink>
         </Reveal>
       )}
 
-      {/* Sections index */}
+      {/* Galleries */}
       <section>
-        <Eyebrow className="mb-2">The Hall</Eyebrow>
-        <Stagger as="ol" className="divide-y divide-line border-y border-line">
-          {sections.map((s, i) => (
-            <StaggerItem as="li" key={s.href}>
-              <PressLink href={s.href} className="group flex items-center gap-4 py-5 sm:gap-8 sm:py-7">
-                <span className="w-8 shrink-0 font-display text-lg text-subtle sm:w-12 sm:text-2xl">{String(i + 1).padStart(2, "0")}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-display text-3xl font-semibold uppercase tracking-wide sm:text-5xl">{s.title}</span>
-                  <span className="mt-1 block truncate text-sm text-muted">{s.note}</span>
+        <div className="mb-6 text-center">
+          <Eyebrow className="text-accent/80">Directory</Eyebrow>
+          <h2 className="mt-2 font-display text-2xl font-bold uppercase tracking-[0.08em] sm:text-3xl">The Galleries</h2>
+        </div>
+        <Stagger as="ol" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {galleries.map((g, i) => (
+            <StaggerItem as="li" key={g.href}>
+              <PressLink href={g.href} className="marble group flex items-center gap-4 rounded-xl px-5 py-6 hover:border-accent/50">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-accent/40 font-display text-sm font-bold text-accent">
+                  {roman(i + 1)}
                 </span>
-                <span
-                  aria-hidden="true"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-lg transition-colors duration-300 group-hover:border-fg group-hover:bg-fg group-hover:text-surface"
-                >
+                <span className="min-w-0 flex-1">
+                  <span className="block break-words font-display text-xl font-bold uppercase tracking-[0.06em] sm:text-2xl">{g.title}</span>
+                  <span className="mt-1 block truncate font-serif text-base italic text-muted">{g.note}</span>
+                </span>
+                <span aria-hidden="true" className="text-xl text-accent transition-transform duration-300 group-hover:translate-x-1">
                   →
                 </span>
               </PressLink>
@@ -130,9 +142,11 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
         </Stagger>
       </section>
 
-      <Reveal>
-        <Eyebrow className="mb-4">Historical Seasons</Eyebrow>
-        <SeasonChips code={code} seasons={summary.seasons} />
+      <Reveal className="text-center">
+        <Eyebrow className="mb-4 text-accent/80">Season Archive</Eyebrow>
+        <div className="flex justify-center">
+          <SeasonChips code={code} seasons={summary.seasons} />
+        </div>
       </Reveal>
     </div>
   );

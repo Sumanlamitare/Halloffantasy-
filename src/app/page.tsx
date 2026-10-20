@@ -14,19 +14,19 @@ export default function LandingPage() {
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(160,124,44,0.14), transparent 62%)" }}
+          style={{ background: "radial-gradient(circle, rgba(255,225,150,0.14), transparent 62%)" }}
         />
         <DrawnCrest className="mb-8 h-20 w-20" />
         <Reveal delay={0.2}>
-          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.32em] text-subtle">ESPN Fantasy Basketball</p>
+          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.4em] text-accent/80">ESPN Fantasy Basketball</p>
         </Reveal>
         <RiseText
           text={"Your Fantasy League\nHas a History."}
           delay={0.3}
-          className="font-display text-[2.7rem] font-bold uppercase leading-[0.98] tracking-wide sm:text-6xl md:text-[5.5rem]"
+          className="gold-text font-display text-[2.4rem] font-black uppercase leading-[1.04] tracking-[0.05em] drop-shadow-[0_4px_18px_rgba(212,173,87,0.25)] sm:text-6xl md:text-[5rem]"
         />
         <Reveal delay={0.75}>
-          <p className="mt-6 max-w-xl font-serif text-lg italic leading-relaxed text-muted sm:text-2xl">
+          <p className="mt-6 max-w-xl font-serif text-xl italic leading-relaxed text-muted sm:text-2xl">
             Turn your ESPN fantasy basketball league history into a Hall of Fame.
           </p>
         </Reveal>
@@ -43,7 +43,7 @@ export default function LandingPage() {
 
       <div className="mb-10 px-4 sm:px-6">
         <Marquee
-          tone="light"
+          tone="dark"
           items={[
             { strong: "Champions", soft: "forever" },
             { strong: "Records", soft: "all-time" },

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TrophyRow } from "@/components/hall";
-import { Eyebrow, StatTile } from "@/components/ui";
+import { StatTile } from "@/components/ui";
 import type { ManagerSeason } from "@/lib/db/collections";
 import { formatPct, formatPoints, formatRecord, ordinal } from "@/lib/format";
 import { getHall, getManager } from "@/lib/hall/queries";
@@ -40,20 +40,27 @@ export default async function ManagerPage({ params }: PageProps<"/hall/[code]/ma
 
   return (
     <div className="space-y-10">
-      <header className="text-center">
-        <Eyebrow className="mb-3">Manager</Eyebrow>
-        <div className="mb-4 flex justify-center">
-          <TrophyRow count={m.championships} max={10} />
-        </div>
-        <h1 className="break-words font-display text-[2.5rem] font-bold uppercase leading-[1.02] tracking-wide text-fg sm:text-6xl">
-          {m.name}
-        </h1>
-        {m.championshipSeasons.length > 0 && (
-          <p className="mt-3 font-serif text-lg italic text-muted">
-            Champion {m.championshipSeasons.join(" · ")}
+      <header className="relative text-center">
+        <div aria-hidden="true" className="spotlight pointer-events-none absolute inset-x-0 -top-20 h-72" />
+        <div className={`${prob.inducted ? "plaque plaque-gold" : "plaque"} relative mx-auto max-w-2xl px-6 pb-9 pt-10 sm:px-12`}>
+          <p className="engraved-muted font-display text-xs font-bold uppercase tracking-[0.35em]">
+            {prob.inducted ? "Hall of Fame Inductee" : "Manager"}
           </p>
-        )}
-        {!m.ownerKnown && <p className="mt-2 text-sm text-subtle">ESPN did not provide this manager&apos;s name; shown by team name.</p>}
+          {m.championships > 0 && (
+            <div className="mt-4 flex justify-center [&_svg]:text-[#3d240c]">
+              <TrophyRow count={m.championships} max={10} />
+            </div>
+          )}
+          <h1 className="engraved mt-3 break-words font-display text-[2.2rem] font-black uppercase leading-[1.04] tracking-[0.04em] sm:text-6xl">
+            {m.name}
+          </h1>
+          {m.championshipSeasons.length > 0 && (
+            <p className="engraved-muted mt-3 font-serif text-xl font-semibold italic">
+              Champion {m.championshipSeasons.join(" · ")}
+            </p>
+          )}
+        </div>
+        {!m.ownerKnown && <p className="mt-3 text-sm text-subtle">ESPN did not provide this manager&apos;s name; shown by team name.</p>}
       </header>
 
       <section className="stagger grid grid-cols-3 gap-3 sm:gap-4">
@@ -62,11 +69,11 @@ export default async function ManagerPage({ params }: PageProps<"/hall/[code]/ma
         <StatTile value={m.playoffs} label="Playoffs" delay={160} />
       </section>
 
-      <section className="rounded-2xl border border-line bg-surface p-5">
+      <section className="marble rounded-xl p-5">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">Hall of Fame Probability</p>
-            <p className={`mt-1 font-display text-5xl font-semibold leading-none ${prob.inducted ? "text-accent" : ""}`}>
+            <p className={`mt-1 font-display text-5xl font-black leading-none ${prob.inducted ? "gold-text" : ""}`}>
               {prob.inducted ? "Inducted" : `${prob.percent}%`}
             </p>
           </div>
@@ -87,7 +94,7 @@ export default async function ManagerPage({ params }: PageProps<"/hall/[code]/ma
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-sunken">
                 <div
-                  className={`h-full rounded-full ${c.progress >= 1 ? "bg-accent" : "bg-fg"}`}
+                  className="h-full rounded-full bg-gradient-to-r from-[#a77e2e] to-[#f3d68f]"
                   style={{ width: `${Math.round(c.progress * 100)}%` }}
                 />
               </div>
