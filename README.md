@@ -153,12 +153,14 @@ The pages read the same data layer (`src/lib/hall/queries.ts`) directly as serve
 
 ## Design & motion
 
-Light, low-color theme (warm neutrals, one brass accent for championships). Material/Flutter-style motion built with CSS in Next.js:
+Light, low-color editorial theme (warm paper tones with a subtle grain, one brass accent for championships; Oswald numerals, Playfair Display names). Animation uses [Motion](https://motion.dev) (`motion/react`):
 
-- **League intro** — entering a Hall shows the league name rising in letter by letter, then the overlay lifts away (once per browser session; tap to skip).
-- **Page transitions** — "fade through" on every Hall section change (`template.tsx`), "shared axis" slide between wizard steps.
-- **Staggered entrances**, count-up stat numbers, ink ripples and press feedback on tappable surfaces, shimmer skeleton while loading, animated nav indicator.
-- All motion is disabled for users with *Reduce Motion* enabled.
+- **Hall intro** — the crest and ring draw themselves, the league name rises letter by letter out of a mask, seasons/managers/titles count up, then the screen lifts like a curtain while the name flies into the header (shared `layoutId`). Once per browser session; tap to skip.
+- **Page transitions** — spring fade-up with a soft de-blur on every Hall section (`template.tsx`).
+- **Navigation** — the active tab pill slides between items (shared layout) on phone and desktop.
+- **Content** — scroll-triggered reveals and staggered lists, counting numbers, growing progress bars, a podium for the top three on the Fame tab, a gliding highlight on the Champions timeline.
+- **Champions banner** — infinite scrolling solid/outline type band, adapted from [krishna-s-teachings](https://github.com/adyaman-singh/krishna-s-teachings) (MIT; see `THIRD_PARTY_NOTICES.md`).
+- Everything respects the system **Reduce Motion** setting (the intro is skipped entirely).
 
 ## Known ESPN limitations
 

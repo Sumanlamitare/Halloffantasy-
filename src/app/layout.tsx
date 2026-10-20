@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Oswald, Playfair_Display } from "next/font/google";
+import { MotionProvider } from "@/components/motion";
 import { Ripple } from "@/components/Ripple";
 import "./globals.css";
 
@@ -8,7 +9,7 @@ const oswald = Oswald({ variable: "--font-oswald", subsets: ["latin"], weight: [
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  weight: ["500", "600", "700", "800"],
   style: ["normal", "italic"],
 });
 
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f6f5f1",
+  themeColor: "#f4f1ea",
   viewportFit: "cover",
 };
 
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.variable} ${oswald.variable} ${playfair.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Ripple />
-        {children}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );
