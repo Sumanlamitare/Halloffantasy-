@@ -1,7 +1,5 @@
 import Link from "next/link";
-import type { ManagerSummary } from "@/lib/db/collections";
-import { formatPct } from "@/lib/format";
-import { pressable, TrophyIcon } from "./ui";
+import { TrophyIcon } from "./ui";
 
 export function SeasonChips({
   code,
@@ -47,46 +45,43 @@ export function TrophyRow({ count, max = 8 }: { count: number; max?: number }) {
   );
 }
 
-export function ManagerCard({ code, m, rank }: { code: string; m: ManagerSummary; rank: number }) {
+/**
+ * Infinite scrolling banner of alternating solid / outline type, adapted
+ * from the marquee in adyaman-singh/krishna-s-teachings (MIT). Items are
+ * rendered twice so the -50% loop is seamless; the band clips its content
+ * so the page never scrolls sideways.
+ */
+export function Marquee({ items, tone = "dark" }: { items: { strong: string; soft?: string }[]; tone?: "dark" | "light" }) {
+  if (!items.length) return null;
+  const loop = [...items, ...items, ...items, ...items];
+  const dark = tone === "dark";
   return (
-    <Link href={`/hall/${code}/managers/${m.managerId}`} className={`${pressable} relative flex flex-col p-5 text-center`}>
-      <span className={`absolute left-5 top-5 font-display text-sm tracking-wider ${rank === 1 ? "text-accent" : "text-subtle"}`}>
-        #{rank}
-      </span>
-      <div className="mx-auto mb-3 flex h-10 items-center justify-center">
-        {m.championships > 0 ? <TrophyRow count={m.championships} /> : <span className="h-5" />}
+    // Outer wrapper clips the tilted band's corners so nothing sticks out sideways.
+    <div className="-mx-4 overflow-hidden py-3 sm:-mx-6" aria-hidden="true">
+    <div
+      className={`relative -mx-[3%] -rotate-[1.5deg] overflow-hidden py-4 ${dark ? "bg-fg text-surface" : "border-y border-line bg-surface"}`}
+    >
+      <div className="marquee flex w-max items-center gap-8 whitespace-nowrap pr-8">
+        {[0, 1].map((half) => (
+          <div key={half} className="flex items-center gap-8">
+            {loop.map((it, i) => (
+              <span key={i} className="flex items-center gap-4">
+                <span className="font-display text-3xl font-bold uppercase tracking-wide sm:text-4xl">{it.strong}</span>
+                {it.soft && (
+                  <span
+                    className="font-serif text-3xl italic sm:text-4xl"
+                    style={{ color: "transparent", WebkitTextStroke: `1px ${dark ? "#fffdf8" : "#1a1814"}` }}
+                  >
+                    {it.soft}
+                  </span>
+                )}
+                <span className="text-accent">✦</span>
+              </span>
+            ))}
+          </div>
+        ))}
       </div>
-      <h3 className="break-words font-display text-2xl font-semibold uppercase leading-tight tracking-wide">{m.name}</h3>
-      {!m.ownerKnown && <p className="mt-1 text-xs text-subtle">Manager name unavailable from ESPN</p>}
-
-      <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-line pt-4">
-        <Stat value={m.championships} label={m.championships === 1 ? "Title" : "Titles"} />
-        <Stat value={m.finals} label="Finals" />
-        <Stat value={m.playoffs} label="Playoffs" />
-      </dl>
-
-      <div className="mt-4 flex items-end justify-between gap-3 rounded-xl bg-sunken px-4 py-3 text-left">
-        <div>
-          <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-muted">Hall of Fame Score</p>
-          <p className="font-display text-3xl font-semibold leading-none">{m.hofScore}</p>
-        </div>
-        <div className="text-right text-xs text-muted">
-          <p>
-            {m.wins}-{m.losses}
-            {m.ties ? `-${m.ties}` : ""}
-          </p>
-          {m.winPct !== null && <p>{formatPct(m.winPct)} win%</p>}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function Stat({ value, label }: { value: number; label: string }) {
-  return (
-    <div>
-      <dd className="font-display text-2xl font-semibold leading-none">{value}</dd>
-      <dt className="mt-1 text-[10.5px] uppercase tracking-[0.12em] text-muted">{label}</dt>
+    </div>
     </div>
   );
 }

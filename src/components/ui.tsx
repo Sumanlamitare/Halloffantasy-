@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { CountUp } from "./CountUp";
+import { CountUp } from "./motion";
 
 /* Icons ---------------------------------------------------------------- */
 
@@ -58,7 +58,7 @@ export function StatTile({ value, label, accent = false, delay = 0 }: { value: n
   return (
     <div className="rounded-2xl border border-line bg-surface px-3 py-5 text-center shadow-[0_1px_2px_rgba(28,27,25,0.04)]">
       <div className={`font-display text-4xl font-semibold leading-none sm:text-5xl ${accent ? "text-accent" : "text-fg"}`}>
-        <CountUp value={value} delay={delay} />
+        <CountUp value={value} delay={delay / 1000} />
       </div>
       <div className="mt-2 text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{label}</div>
     </div>

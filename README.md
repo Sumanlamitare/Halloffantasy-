@@ -19,6 +19,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · MongoDB 
 | `MONGODB_URI` | Yes | MongoDB Atlas connection string (include the database name in the path). |
 | `MONGODB_DB` | No | Overrides the database name from the URI. |
 | `ESPN_CREDENTIALS_KEY` | For private leagues | 32 random bytes (base64 or hex) used to encrypt `espn_s2`/`SWID` while an import runs. Generate with `openssl rand -base64 32`. Public leagues work without it. |
+| `CRON_SECRET` | Recommended | Any long random string. Vercel sends it with the daily auto-update job; other callers of `/api/cron/sync` are rejected. |
 
 All are server-only. Copy `.env.example` to `.env.local` for local development. `.env*` files are git-ignored.
 
@@ -81,6 +82,16 @@ Notes:
 | "Private leagues are not enabled on this server…" | Set `ESPN_CREDENTIALS_KEY` in Vercel and redeploy. |
 | "ESPN is temporarily unavailable…" | ESPN hiccup — press **Resume Import**; finished seasons are kept. |
 
+## Automatic updates
+
+Opt in with **Keep this Hall updated automatically** when importing (on by default).
+
+- **While people visit:** if the data is more than 30 minutes old during an active season, a visit triggers a background refresh from ESPN. The page is never slowed down; the refreshed data appears on the next load, and open pages re-read it every 5 minutes.
+- **Daily:** a Vercel Cron job (`vercel.json`, 10:00 UTC) refreshes every opted-in Hall. The Hobby plan allows one cron run per day.
+- **What's refreshed:** only seasons still in progress, plus a check for whether the league has renewed for a new season (which is then added automatically). Completed seasons are never re-fetched.
+- **Private leagues:** auto-update keeps the league's `espn_s2`/`SWID` stored encrypted (AES-256-GCM) in `league_credentials`. Unchecking the option deletes them after the import. ESPN cookies eventually expire; the Hall footer then shows "Automatic updates paused", and the commissioner reconnects by running **Create Your Hall** again with fresh cookies (same league code).
+- Halls imported before this feature existed: re-run **Create Your Hall** once with the option checked.
+
 ## How it works
 
 ### Commissioner
@@ -109,7 +120,7 @@ Requests retry on network errors, 429, and 5xx responses (3 attempts, exponentia
 
 ## MongoDB collections
 
-`leagues`, `seasons`, `teams`, `members`, `matchups`, `playoffs`, `hall_records` (computed Hall of Fame / champions / records), `imports` (job state, 7-day TTL), `import_credentials` (encrypted, 6-hour TTL).
+`leagues`, `seasons`, `teams`, `members`, `matchups`, `playoffs`, `hall_records` (computed Hall of Fame / champions / records), `imports` (job state, 7-day TTL), `import_credentials` (encrypted, 6-hour TTL), `league_credentials` (encrypted, only for private leagues that opted in to auto-update).
 
 Unique indexes prevent duplicates, and every write is an upsert keyed on them:
 `leagueId+season`, `leagueId+season+teamId`, `leagueId+season+memberId`, `leagueId+season+matchupId` (matchups, playoffs), `code` (leagues).
@@ -122,6 +133,7 @@ Re-importing a league updates its data in place and keeps the same league code.
 - **Playoff appearance**: regular-season seed ≤ league playoff team count (or appearing in the winners bracket).
 - **Career stats, Hall of Fame Score, and records** use completed seasons only. Points stats use points-scoring seasons only.
 - **Hall of Fame Score** (shown on the Hall of Fame page): per completed season, best result — Championship 10, Runner-up 6, other playoff appearance 3 — plus 2 for the #1 regular-season seed.
+- **Hall of Fame Probability** (Fame tab leaderboard): progress toward the induction bar — **5+ championships, 10+ playoff appearances, 500,000+ points for, 100+ regular-season wins**. Each requirement counts up to 100% and the probability is their average; 100% = **Inducted** (every bar met). In leagues without points scoring, points for is left out and the other three are averaged. The leaderboard ranks by probability, then HOF points.
 - Managers are identified across seasons by their ESPN member ID.
 
 ## API
@@ -141,12 +153,14 @@ The pages read the same data layer (`src/lib/hall/queries.ts`) directly as serve
 
 ## Design & motion
 
-Light, low-color theme (warm neutrals, one brass accent for championships). Material/Flutter-style motion built with CSS in Next.js:
+Light, low-color editorial theme (warm paper tones with a subtle grain, one brass accent for championships; Oswald numerals, Playfair Display names). Animation uses [Motion](https://motion.dev) (`motion/react`):
 
-- **League intro** — entering a Hall shows the league name rising in letter by letter, then the overlay lifts away (once per browser session; tap to skip).
-- **Page transitions** — "fade through" on every Hall section change (`template.tsx`), "shared axis" slide between wizard steps.
-- **Staggered entrances**, count-up stat numbers, ink ripples and press feedback on tappable surfaces, shimmer skeleton while loading, animated nav indicator.
-- All motion is disabled for users with *Reduce Motion* enabled.
+- **Hall intro** — the crest and ring draw themselves, the league name rises letter by letter out of a mask, seasons/managers/titles count up, then the screen lifts like a curtain while the name flies into the header (shared `layoutId`). Once per browser session; tap to skip.
+- **Page transitions** — spring fade-up with a soft de-blur on every Hall section (`template.tsx`).
+- **Navigation** — the active tab pill slides between items (shared layout) on phone and desktop.
+- **Content** — scroll-triggered reveals and staggered lists, counting numbers, growing progress bars, a podium for the top three on the Fame tab, a gliding highlight on the Champions timeline.
+- **Champions banner** — infinite scrolling solid/outline type band, adapted from [krishna-s-teachings](https://github.com/adyaman-singh/krishna-s-teachings) (MIT; see `THIRD_PARTY_NOTICES.md`).
+- Everything respects the system **Reduce Motion** setting (the intro is skipped entirely).
 
 ## Known ESPN limitations
 

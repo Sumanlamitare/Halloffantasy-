@@ -18,6 +18,16 @@ export interface LeagueDoc {
   currentSeason: number;
   /** Seasons with core data successfully imported. */
   seasons: number[];
+  /** Private leagues need stored ESPN credentials to auto-update. */
+  isPrivate?: boolean;
+  /** Keep the Hall in sync with ESPN automatically (opt-in at import). */
+  autoUpdate?: boolean;
+  /** True while any imported season is still in progress. */
+  hasActiveSeason?: boolean;
+  lastSyncedAt?: Date | null;
+  lastSyncAttemptAt?: Date | null;
+  syncLockedUntil?: Date | null;
+  syncStatus?: "ok" | "needs_credentials" | "error" | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -207,6 +217,8 @@ export interface ImportDoc {
   currentSeason: number;
   availableSeasons: number[];
   isPrivate: boolean;
+  /** Commissioner opted in to automatic updates. */
+  autoUpdate?: boolean;
   status: "connected" | "running" | "complete" | "failed";
   seasons: ImportSeasonState[];
   error: string | null;
@@ -214,6 +226,15 @@ export interface ImportDoc {
   createdAt: Date;
   updatedAt: Date;
   expiresAt: Date;
+}
+
+/** ESPN cookies kept (encrypted) for leagues that opted in to auto-update. */
+export interface LeagueCredentialsDoc {
+  _id: string; // ESPN league ID
+  iv: string;
+  tag: string;
+  ciphertext: string;
+  updatedAt: Date;
 }
 
 export interface ImportCredentialsDoc {
@@ -238,6 +259,7 @@ export interface Collections {
   hallRecords: Collection<HallRecordsDoc>;
   imports: Collection<ImportDoc>;
   importCredentials: Collection<ImportCredentialsDoc>;
+  leagueCredentials: Collection<LeagueCredentialsDoc>;
 }
 
 function bind(db: Db): Collections {
@@ -251,6 +273,7 @@ function bind(db: Db): Collections {
     hallRecords: db.collection<HallRecordsDoc>("hall_records"),
     imports: db.collection<ImportDoc>("imports"),
     importCredentials: db.collection<ImportCredentialsDoc>("import_credentials"),
+    leagueCredentials: db.collection<LeagueCredentialsDoc>("league_credentials"),
   };
 }
 
@@ -267,6 +290,7 @@ async function ensureIndexes(c: Collections): Promise<void> {
     c.hallRecords.createIndex({ leagueId: 1 }, { unique: true }),
     c.imports.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
     c.importCredentials.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    c.leagues.createIndex({ autoUpdate: 1 }),
   ]);
 }
 

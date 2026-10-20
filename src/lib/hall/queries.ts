@@ -11,6 +11,7 @@ import {
   type SeasonDoc,
 } from "@/lib/db/collections";
 import { normalizeLeagueCode } from "@/lib/league-code";
+import { isSyncDue } from "@/lib/sync/league-sync";
 
 /**
  * Read-side of the Hall. Everything here reads MongoDB only — visitors never
@@ -18,8 +19,18 @@ import { normalizeLeagueCode } from "@/lib/league-code";
  * Mongo internals or any credentials.
  */
 
+export interface HallSync {
+  autoUpdate: boolean;
+  hasActiveSeason: boolean;
+  lastSyncedAt: string | null;
+  status: "ok" | "needs_credentials" | "error" | null;
+  /** A background refresh from ESPN is due. */
+  due: boolean;
+}
+
 export interface Hall {
   league: Pick<LeagueDoc, "name" | "size" | "currentSeason" | "code"> & { leagueId: string };
+  sync: HallSync;
   records: Omit<HallRecordsDoc, "leagueId" | "computedAt"> & { computedAt: string };
 }
 
@@ -38,6 +49,13 @@ export const getHall = cache(async (rawCode: string): Promise<Hall | null> => {
       size: league.size,
       currentSeason: league.currentSeason,
       code: league.code,
+    },
+    sync: {
+      autoUpdate: !!league.autoUpdate,
+      hasActiveSeason: !!league.hasActiveSeason,
+      lastSyncedAt: (league.lastSyncedAt ?? league.updatedAt)?.toISOString() ?? null,
+      status: league.syncStatus ?? null,
+      due: isSyncDue(league),
     },
     records: {
       completedSeasons: records.completedSeasons,

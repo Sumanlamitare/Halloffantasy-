@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SeasonChips } from "@/components/hall";
+import { ActiveMarker, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { Card, Eyebrow, SectionTitle, TrophyIcon, Unavailable } from "@/components/ui";
 import { formatPoints, formatRecord, seasonSpan } from "@/lib/format";
 import { getHall, getPlayoffPath } from "@/lib/hall/queries";
@@ -25,32 +26,33 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
       ) : (
         <>
           {/* Timeline */}
-          <ol className="stagger relative space-y-3 border-l border-line pl-6">
+          <Stagger as="ol" className="relative space-y-3 border-l border-line pl-6">
             {champions.map((c) => (
-              <li key={c.season} className="relative">
+              <StaggerItem as="li" key={c.season} className="relative">
                 <span className="absolute -left-[31px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-accent" aria-hidden="true" />
                 <Link
                   href={`/hall/${code}/champions?season=${c.season}`}
                   scroll={false}
-                  className={`ripple flex min-h-14 items-center gap-4 rounded-2xl border px-4 py-3 transition-[background-color,box-shadow,border-color] duration-200 ${
-                    selected?.season === c.season ? "border-fg bg-surface shadow-[0_6px_20px_rgba(28,27,25,0.07)]" : "border-line bg-surface hover:bg-sunken"
-                  }`}
+                  className="ripple relative flex min-h-14 items-center gap-4 overflow-hidden rounded-2xl border border-line bg-surface px-4 py-3 transition-colors duration-200 hover:bg-sunken"
                 >
-                  <span className="w-14 shrink-0 font-display text-2xl font-semibold text-muted">{c.season}</span>
+                  {selected?.season === c.season && (
+                    <ActiveMarker id="champion-active" className="absolute inset-0 rounded-2xl border-2 border-fg" />
+                  )}
+                  <span className="relative w-14 shrink-0 font-display text-2xl font-semibold text-muted">{c.season}</span>
                   {c.champion ? (
-                    <span className="flex min-w-0 items-center gap-2">
+                    <span className="relative flex min-w-0 items-center gap-2">
                       <TrophyIcon className="h-5 w-5 shrink-0 text-accent" />
                       <span className="min-w-0 truncate font-display text-lg uppercase tracking-wide text-fg">
                         {c.champion.name}
                       </span>
                     </span>
                   ) : (
-                    <span className="text-sm text-subtle">{c.isComplete ? "Champion unavailable" : "Season in progress"}</span>
+                    <span className="relative text-sm text-subtle">{c.isComplete ? "Champion unavailable" : "Season in progress"}</span>
                   )}
                 </Link>
-              </li>
+              </StaggerItem>
             ))}
-          </ol>
+          </Stagger>
 
           {/* Season detail */}
           {selected && (
@@ -65,7 +67,8 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
                 />
               </div>
 
-              <Card key={selected.season} className="page-enter space-y-6">
+              <Reveal key={selected.season} y={24}>
+              <Card className="space-y-6">
                 <div className="text-center">
                   <p className="font-display text-sm uppercase tracking-[0.3em] text-muted">
                     {selected.season} · {seasonSpan(selected.season)}
@@ -150,6 +153,7 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
                   Full {selected.season} season →
                 </Link>
               </Card>
+              </Reveal>
             </section>
           )}
         </>

@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
+
+const pill = { type: "spring", stiffness: 380, damping: 32 } as const;
 
 const ITEMS = [
   { href: "", label: "Home", icon: "M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" },
@@ -29,11 +32,14 @@ export function HallNav({ code }: { code: string }) {
             <Link
               href={base + item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
-              className={`ripple inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-colors duration-200 ${
-                isActive(item.href) ? "bg-fg text-surface" : "text-muted hover:bg-sunken hover:text-fg"
+              className={`relative inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-colors duration-200 ${
+                isActive(item.href) ? "text-surface" : "text-muted hover:text-fg"
               }`}
             >
-              {item.label}
+              {isActive(item.href) && (
+                <motion.span layoutId="nav-pill-desktop" className="absolute inset-0 rounded-full bg-fg" transition={pill} />
+              )}
+              <span className="relative">{item.label}</span>
             </Link>
           </li>
         ))}
@@ -64,10 +70,10 @@ export function HallTabBar({ code }: { code: string }) {
                 className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 ${active ? "text-fg" : "text-muted"}`}
               >
                 <span className="relative flex h-8 w-14 items-center justify-center">
-                  <span
-                    className={`absolute inset-0 rounded-full bg-sunken transition-transform duration-300 ease-[var(--ease-emphasized)] ${active ? "scale-100" : "scale-x-0"}`}
-                  />
-                  <svg viewBox="0 0 24 24" aria-hidden="true" className="relative h-5 w-5" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+                  {active && (
+                    <motion.span layoutId="nav-pill-mobile" className="absolute inset-0 rounded-full bg-fg" transition={pill} />
+                  )}
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className={`relative h-5 w-5 transition-colors duration-200 ${active ? "text-surface" : ""}`} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
                     <path d={item.icon} />
                   </svg>
                 </span>
