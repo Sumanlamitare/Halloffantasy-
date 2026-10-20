@@ -153,14 +153,16 @@ The pages read the same data layer (`src/lib/hall/queries.ts`) directly as serve
 
 ## Design & motion
 
-Light, low-color editorial theme (warm paper tones with a subtle grain, one brass accent for championships; Oswald numerals, Playfair Display names). Animation uses [Motion](https://motion.dev) (`motion/react`):
+A dark museum: marble walls under gallery spotlights, bronze plaques with engraved lettering, and championship banners hanging in the rafters (Cinzel for engraved titles, Cormorant Garamond for inscriptions, Inter for body text, a single gold accent). Animation uses [Motion](https://motion.dev) (`motion/react`):
 
-- **Hall intro** — the crest and ring draw themselves, the league name rises letter by letter out of a mask, seasons/managers/titles count up, then the screen lifts like a curtain while the name flies into the header (shared `layoutId`). Once per browser session; tap to skip.
-- **Page transitions** — spring fade-up with a soft de-blur on every Hall section (`template.tsx`).
-- **Navigation** — the active tab pill slides between items (shared layout) on phone and desktop.
-- **Content** — scroll-triggered reveals and staggered lists, counting numbers, growing progress bars, a podium for the top three on the Fame tab, a gliding highlight on the Champions timeline.
-- **Champions banner** — infinite scrolling solid/outline type band, adapted from [krishna-s-teachings](https://github.com/adyaman-singh/krishna-s-teachings) (MIT; see `THIRD_PARTY_NOTICES.md`).
-- Everything respects the system **Reduce Motion** setting (the intro is skipped entirely).
+- **Hall intro**: the lights come up on a bronze plaque engraved with the league name (letter by letter, with a sweeping glint), the season, manager and title counts tick up, then the marble doors swing open and the name flies into the header (shared `layoutId`). It plays once per browser session; tap to skip.
+- **The Rafters**: each title is an oxblood banner on a brass rod that sways gently. Unfinished seasons hang dimmed as "To be decided".
+- **Hall of Fame**: every manager gets a bronze plaque (gold once inducted) with their probability and a progress groove. The top three stand on a podium.
+- **Record Book**: records are carved into marble tablets.
+- **Page transitions**: a spring fade-up with a soft de-blur on every Hall section (`template.tsx`).
+- **Navigation**: the active tab pill slides between items (shared layout) on phone and desktop.
+- **Landing marquee**: an infinite scrolling solid/outline type band, adapted from [krishna-s-teachings](https://github.com/adyaman-singh/krishna-s-teachings) (MIT; see `THIRD_PARTY_NOTICES.md`).
+- Everything respects the system **Reduce Motion** setting; the intro is skipped entirely.
 
 ## Known ESPN limitations
 

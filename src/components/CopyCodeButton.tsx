@@ -28,7 +28,7 @@ export function CopyCodeButton({ code, className = "" }: { code: string; classNa
     <button
       type="button"
       onClick={copy}
-      className={`ripple inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-fg px-6 text-[15px] font-semibold tracking-wide text-surface shadow-[0_2px_8px_rgba(28,27,25,0.18)] transition-transform duration-200 active:scale-[0.97] ${className}`}
+      className={`ripple inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-b from-[#f3d68f] via-[#d4ad57] to-[#a77e2e] px-6 text-[15px] font-semibold tracking-wide text-[#1f1607] shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_10px_24px_-10px_rgba(212,173,87,0.7)] transition-transform duration-200 active:scale-[0.97] ${className}`}
       aria-live="polite"
     >
       <span key={String(copied)} className="page-enter">{copied ? "Copied!" : "Copy Code"}</span>

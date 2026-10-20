@@ -33,11 +33,15 @@ export function HallNav({ code }: { code: string }) {
               href={base + item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
               className={`relative inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-colors duration-200 ${
-                isActive(item.href) ? "text-surface" : "text-muted hover:text-fg"
+                isActive(item.href) ? "text-[#1f1607]" : "text-muted hover:text-fg"
               }`}
             >
               {isActive(item.href) && (
-                <motion.span layoutId="nav-pill-desktop" className="absolute inset-0 rounded-full bg-fg" transition={pill} />
+                <motion.span
+                  layoutId="nav-pill-desktop"
+                  className="absolute inset-0 rounded-full bg-gradient-to-b from-[#f3d68f] via-[#d4ad57] to-[#a77e2e] shadow-[0_6px_18px_-8px_rgba(212,173,87,0.8)]"
+                  transition={pill}
+                />
               )}
               <span className="relative">{item.label}</span>
             </Link>
@@ -57,7 +61,7 @@ export function HallTabBar({ code }: { code: string }) {
   return (
     <nav
       aria-label="Hall sections"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-accent/25 bg-[#0d0c0a]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <ul className="grid grid-cols-5">
         {ITEMS.map((item) => {
@@ -67,13 +71,17 @@ export function HallTabBar({ code }: { code: string }) {
               <Link
                 href={base + item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 ${active ? "text-fg" : "text-muted"}`}
+                className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 ${active ? "text-accent" : "text-muted"}`}
               >
                 <span className="relative flex h-8 w-14 items-center justify-center">
                   {active && (
-                    <motion.span layoutId="nav-pill-mobile" className="absolute inset-0 rounded-full bg-fg" transition={pill} />
+                    <motion.span
+                      layoutId="nav-pill-mobile"
+                      className="absolute inset-0 rounded-full bg-accent/15 shadow-[0_0_18px_rgba(212,173,87,0.35)]"
+                      transition={pill}
+                    />
                   )}
-                  <svg viewBox="0 0 24 24" aria-hidden="true" className={`relative h-5 w-5 transition-colors duration-200 ${active ? "text-surface" : ""}`} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className={`relative h-5 w-5 transition-colors duration-200 ${active ? "text-accent" : ""}`} fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
                     <path d={item.icon} />
                   </svg>
                 </span>
