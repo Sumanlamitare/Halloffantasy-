@@ -104,6 +104,8 @@ export function Banner({
   season,
   champion,
   teamName,
+  mark,
+  note,
   inProgress = false,
   selected = false,
   delay = 0,
@@ -111,6 +113,10 @@ export function Banner({
   season: number;
   champion: string | null;
   teamName?: string | null;
+  /** Commissioner mark after the champion's name, e.g. "*". */
+  mark?: string;
+  /** Commissioner line under the champion's name. */
+  note?: string;
   inProgress?: boolean;
   selected?: boolean;
   delay?: number;
@@ -134,9 +140,13 @@ export function Banner({
           <TrophyIcon className="mt-3 h-6 w-6 text-accent sm:h-7 sm:w-7" />
           <span className="mt-3 w-full break-words font-display text-[11px] font-bold uppercase leading-tight tracking-[0.08em] text-fg sm:text-sm">
             {champion ?? (inProgress ? "To be decided" : "—")}
+            {champion && mark && <span className="text-accent">{mark}</span>}
           </span>
           {teamName && (
             <span className="mt-1 line-clamp-2 w-full font-serif text-[12px] italic leading-tight text-muted sm:text-sm">{teamName}</span>
+          )}
+          {note && (
+            <span className="mt-1.5 w-full break-words font-serif text-[12px] italic leading-tight text-accent sm:text-sm">{note}</span>
           )}
           <span className="mt-auto pt-3 text-[9px] font-semibold uppercase tracking-[0.25em] text-accent/80">
             {inProgress ? "In progress" : "Champions"}

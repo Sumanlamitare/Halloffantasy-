@@ -4,6 +4,7 @@ import { Banner, SeasonChips } from "@/components/hall";
 import { ActiveMarker, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { Card, Eyebrow, SectionTitle, TrophyIcon, Unavailable } from "@/components/ui";
 import { formatPoints, formatRecord, seasonSpan } from "@/lib/format";
+import { championBanners } from "@/lib/hall/banners";
 import { getHall, getPlayoffPath } from "@/lib/hall/queries";
 import { isPointsScoring } from "@/lib/import/normalize";
 
@@ -11,11 +12,11 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
   const hall = await getHall((await params).code);
   if (!hall) notFound();
   const code = hall.league.code!;
-  const champions = hall.records.champions;
+  const champions = championBanners(hall);
   const sp = await searchParams;
   const requested = Number(Array.isArray(sp.season) ? sp.season[0] : sp.season);
   const selected = champions.find((c) => c.season === requested) ?? champions.find((c) => c.champion) ?? champions[0];
-  const path = selected?.champion ? await getPlayoffPath(hall, selected.season) : [];
+  const path = selected?.champion && !selected.manual ? await getPlayoffPath(hall, selected.season) : [];
 
   return (
     <div className="space-y-10">
@@ -43,6 +44,8 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
                       season={c.season}
                       champion={c.champion?.name ?? (c.isComplete ? "Not reported" : null)}
                       teamName={c.champion?.teamName}
+                      mark={c.mark}
+                      note={c.note}
                       inProgress={!c.isComplete}
                       selected={selected?.season === c.season}
                       delay={i * 0.9}
@@ -76,13 +79,25 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
                     <>
                       <TrophyIcon className="mx-auto mt-4 h-12 w-12 text-accent" />
                       <p className="mt-3 text-[11px] uppercase tracking-[0.24em] text-accent">Champion</p>
-                      <Link
-                        href={`/hall/${code}/managers/${selected.champion.managerId}`}
-                        className="mt-1 block break-words font-display text-4xl font-bold uppercase leading-tight tracking-wide text-fg"
-                      >
-                        {selected.champion.name}
-                      </Link>
-                      <p className="mt-1 text-sm text-muted">{selected.champion.teamName}</p>
+                      {selected.champion.managerId ? (
+                        <Link
+                          href={`/hall/${code}/managers/${selected.champion.managerId}`}
+                          className="mt-1 block break-words font-display text-4xl font-bold uppercase leading-tight tracking-wide text-fg"
+                        >
+                          {selected.champion.name}
+                          {selected.mark && <span className="text-accent">{selected.mark}</span>}
+                        </Link>
+                      ) : (
+                        <p className="mt-1 break-words font-display text-4xl font-bold uppercase leading-tight tracking-wide text-fg">
+                          {selected.champion.name}
+                          {selected.mark && <span className="text-accent">{selected.mark}</span>}
+                        </p>
+                      )}
+                      {selected.champion.teamName && <p className="mt-1 text-sm text-muted">{selected.champion.teamName}</p>}
+                      {selected.note && <p className="mt-2 font-serif text-lg italic text-accent">{selected.note}</p>}
+                      {selected.manual && (
+                        <p className="mt-4 text-sm text-subtle">Added by the commissioner. This season isn&apos;t in the imported ESPN history.</p>
+                      )}
                     </>
                   ) : (
                     <p className="mt-4 text-muted">
@@ -148,9 +163,11 @@ export default async function ChampionsPage({ params, searchParams }: PageProps<
                   </div>
                 )}
 
+                {!selected.manual && (
                 <Link href={`/hall/${code}/seasons/${selected.season}`} className="inline-flex min-h-11 items-center text-sm font-medium text-fg underline-offset-4 hover:underline">
                   Full {selected.season} season →
                 </Link>
+                )}
               </Card>
               </Reveal>
             </section>
