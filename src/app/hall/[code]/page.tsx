@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Banner, roman, SeasonChips } from "@/components/hall";
 import { CountUp, PressLink, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { Eyebrow, TrophyIcon } from "@/components/ui";
+import { championBanners } from "@/lib/hall/banners";
 import { getHall, hallSummary } from "@/lib/hall/queries";
 import { hofProbability, leagueTracksPoints } from "@/lib/hall/scoring";
 
@@ -10,7 +11,7 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
   if (!hall) notFound();
   const code = hall.league.code!;
   const summary = hallSummary(hall);
-  const champions = hall.records.champions.filter((c) => c.champion);
+  const champions = championBanners(hall).filter((c) => c.champion);
   const reigning = champions[0] ?? null;
   const pointsTracked = leagueTracksPoints(hall.records.managers);
   const inducted = hall.records.managers.filter((m) => hofProbability(m, pointsTracked).inducted).length;
@@ -29,7 +30,7 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
           ? `${leader.name} leads the candidates at ${leader.prob.percent}%`
           : "The inductees",
     },
-    { href: `/hall/${code}/champions`, title: "The Rafters", note: `${summary.championshipCount} championship banners` },
+    { href: `/hall/${code}/champions`, title: "The Rafters", note: `${champions.length} championship banner${champions.length === 1 ? "" : "s"}` },
     { href: `/hall/${code}/seasons`, title: "Season Archive", note: `${summary.seasonCount} seasons of standings & playoffs` },
     { href: `/hall/${code}/records`, title: "Record Book", note: `${hall.records.records.length} all-time records` },
   ];
@@ -59,7 +60,7 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
           {[
             [summary.seasonCount, summary.seasonCount === 1 ? "Season" : "Seasons"],
             [summary.managerCount, "Managers"],
-            [summary.championshipCount, "Titles"],
+            [champions.length, "Titles"],
           ].map(([value, label]) => (
             <StaggerItem key={label as string}>
               <div className="plaque px-2 pb-5 pt-6 text-center">
@@ -84,7 +85,7 @@ export default async function HallHome({ params }: PageProps<"/hall/[code]">) {
             {champions.map((c, i) => (
               <StaggerItem key={c.season} className="w-1/3 sm:w-1/4 lg:w-1/6">
                 <PressLink href={`/hall/${code}/champions?season=${c.season}`} className="block">
-                  <Banner season={c.season} champion={c.champion!.name} teamName={c.champion!.teamName} delay={i * 0.9} />
+                  <Banner season={c.season} champion={c.champion!.name} teamName={c.champion!.teamName} mark={c.mark} note={c.note} delay={i * 0.9} />
                 </PressLink>
               </StaggerItem>
             ))}
