@@ -5,7 +5,7 @@ import type { Hall } from "@/lib/hall/queries";
  * Commissioner additions to a league's championship banners, keyed by league
  * name. They only change the banners in the rafters (Home and Champions);
  * the Hall of Fame, records and season pages still use imported ESPN data.
- * Names are matched case-insensitively.
+ * League and manager names are matched on their letters and digits only.
  */
 interface BannerEdits {
   /** Text added right after a champion's name on their banners, e.g. "*". */
@@ -17,9 +17,9 @@ interface BannerEdits {
 }
 
 const LEAGUE_BANNER_EDITS: Record<string, BannerEdits> = {
-  "nepali boyz": {
-    marks: { "hari timsina": "*" },
-    notes: { "leela pokhrel": "(Thank you Suman)" },
+  "Nepali Boyz": {
+    marks: { "Hari Timsina": "*" },
+    notes: { "Leela Pokhrel": "(Thank you Suman)" },
     extraTitles: [{ season: 2021, champion: "Suman Lamitare" }],
   },
 };
@@ -31,13 +31,16 @@ export interface BannerEntry extends ChampionEntry {
   manual?: boolean;
 }
 
-const norm = (s: string) => s.trim().replace(/\s+/g, " ").toLowerCase();
+/** Letters and digits only, so spacing, punctuation, emoji and invisible characters don't matter. */
+const norm = (s: string) => s.normalize("NFKD").toLowerCase().replace(/[^a-z0-9]/g, "");
 
 /** One entry per season (newest first) with the league's banner additions applied. */
 export function championBanners(hall: Hall): BannerEntry[] {
   const list: BannerEntry[] = hall.records.champions.map((c) => ({ ...c }));
-  const edits = LEAGUE_BANNER_EDITS[norm(hall.league.name)];
+  const edits = Object.entries(LEAGUE_BANNER_EDITS).find(([name]) => norm(name) === norm(hall.league.name))?.[1];
   if (!edits) return list;
+  const lookup = (map: Record<string, string> | undefined, name: string) =>
+    Object.entries(map ?? {}).find(([key]) => norm(key) === norm(name))?.[1];
 
   for (const t of edits.extraTitles ?? []) {
     if (list.some((c) => c.season === t.season)) continue; // imported ESPN data wins
@@ -55,8 +58,8 @@ export function championBanners(hall: Hall): BannerEntry[] {
 
   for (const c of list) {
     if (!c.champion) continue;
-    c.mark = edits.marks?.[norm(c.champion.name)];
-    c.note = edits.notes?.[norm(c.champion.name)];
+    c.mark = lookup(edits.marks, c.champion.name);
+    c.note = lookup(edits.notes, c.champion.name);
   }
   return list;
 }
